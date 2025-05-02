@@ -1,3 +1,7 @@
+# Ignore intermediate files from Zig compiler.
 zig-cache/
 zig-out/
 .zig-cache/
+
+# Ignore VIM editor cache files.
+.*.swp

@@ -37,7 +37,7 @@ pub fn addROM(b: *std.Build, options: GBARomOptions) *std.Build.Step.Compile {
         .target = gba_thumb_target,
         .optimize = options.optimize,
     });
-    rom.setLinkerScriptPath(std.Build.LazyPath{ .src_path = .{
+    rom.setLinkerScript(std.Build.LazyPath{ .src_path = .{
         .owner = b,
         .sub_path = GBALinkerScript,
     } });
@@ -48,7 +48,7 @@ pub fn addROM(b: *std.Build, options: GBARomOptions) *std.Build.Step.Compile {
     // more investigation.
     const objcopy_step = rom.addObjCopy(.{ .format = .bin });
     const install_bin_step = b.addInstallBinFile(
-        objcopy_step.getOutputSource(),
+        objcopy_step.getOutput(),
         b.fmt("{s}.gba", .{options.name}),
     );
 
