@@ -39,10 +39,11 @@ pub fn build(b: *std.Build) void {
 
     first.root_module.addImport(LibName, m);
 
-    // Though not sure whether doable, let's keep unit test anyway.
-    // Some logic should be able to run on devbox.
+    // Unit tests are compiled and executed in host machine. Some
+    // GBA-specific code, e.g., manipulation of registers, will not be
+    // covered by unit tests.
     const lib_unit_tests = b.addTest(.{
-        .root_source_file = b.path( "src/ut.zig"),
+        .root_source_file = b.path( "src/unittest.zig"),
         .target = target,
         .optimize = optimize,
     });

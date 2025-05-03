@@ -62,20 +62,7 @@ pub const Screen = struct {
     pub const HEIGHT_PIXELS = 160;
 };
 
-pub const Display = struct {
-    pub const MODE0 = 0x0000;
-    pub const MODE1 = 0x0001;
-    pub const MODE2 = 0x0002;
-    pub const MODE3 = 0x0003;
-    pub const MODE4 = 0x0004;
-    pub const MODE5 = 0x0005;
-
-    pub const BG0 = 0x0100;
-    pub const BG1 = 0x0200;
-    pub const BG2 = 0x0400;
-    pub const BG4 = 0x0800;
-    pub const OBJ = 0x1000;
-};
+pub const Display = @import("display.zig");
 
 pub const Color = struct {
     pub const BLACK: u16 = 0x0000;
