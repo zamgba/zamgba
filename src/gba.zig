@@ -216,7 +216,7 @@ export fn _start() linksection(".gba.start") void {
     // Line 1: Set register base to ioram
     // Line 2-4: Turn on IRQ mode (see gbadoc->hardware-interrupts)
     // Line 5: Set IRQ Stack: 0x03000000 - 0x60 = 0x03007FA0
-    // Line 6-7: Switch to System Mode
+    // Line 6-7: Switch to User Mode (0x10) instead of System Mode (0x1F)
     // Line 8: Set user stack: (__sp_irq - 0xa0 = 0x03007F00)
     // Line 9-10: Jump to _boot() function for initiaization.
     asm volatile (
@@ -227,7 +227,7 @@ export fn _start() linksection(".gba.start") void {
         \\mov r0, #0x12
         \\msr cpsr, r0
         \\ldr sp, =__sp_irq
-        \\mov r0, #0x1f
+        \\mov r0, #0x10
         \\msr cpsr, r0
         \\ldr sp, =__sp_usr
         \\ldr r3, =_boot
