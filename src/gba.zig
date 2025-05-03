@@ -63,18 +63,90 @@ pub const Screen = struct {
 };
 
 pub const Display = struct {
-    pub const MODE0 = 0x0000;
-    pub const MODE1 = 0x0001;
-    pub const MODE2 = 0x0002;
-    pub const MODE3 = 0x0003;
-    pub const MODE4 = 0x0004;
-    pub const MODE5 = 0x0005;
+    const MODE0 = 0x0000;
+    const MODE1 = 0x0001;
+    const MODE2 = 0x0002;
+    const MODE3 = 0x0003;
+    const MODE4 = 0x0004;
+    const MODE5 = 0x0005;
 
-    pub const BG0 = 0x0100;
-    pub const BG1 = 0x0200;
-    pub const BG2 = 0x0400;
-    pub const BG4 = 0x0800;
-    pub const OBJ = 0x1000;
+    const BG0 = 0x0100;
+    const BG1 = 0x0200;
+    const BG2 = 0x0400;
+    const BG4 = 0x0800;
+    const OBJ = 0x1000;
+
+    const REG_DISPCNT = @as(*volatile u16, @ptrFromInt(0x04000000));
+    const REG_DISPSTAT = @as(*volatile u16, @ptrFromInt(0x04000004));
+    const REG_VCOUNT = @as(*volatile u16, @ptrFromInt(0x04000006));
+
+    pub const Control = struct {
+        // DCNT_MODE
+        pub const Mode = struct {
+            pub fn set0() void {
+                (*REG_DISPCNT) = MODE0;
+            }
+            pub fn set1() void {
+                (*REG_DISPCNT) = MODE1;
+            }
+            pub fn set2() void {
+                (*REG_DISPCNT) = MODE2;
+            }
+            pub fn set3() void {
+                (*REG_DISPCNT) = MODE3;
+            }
+            pub fn set4() void {
+                (*REG_DISPCNT) = MODE4;
+            }
+            pub fn set5() void {
+                (*REG_DISPCNT) = MODE5;
+            }
+        };
+
+        // DCNT_GB
+        pub fn isGBC() bool {
+            return (*REG_DISPCNT) & 0x08 == 0x08;
+        }
+
+        // DCNT_PAGE
+        pub const Page = struct {
+            pub fn select1() void {
+                (*REG_DISPCNT) |= 0x00000010;
+            }
+            pub fn select0() void {
+                (*REG_DISPCNT) &= 0xFFFFFFEF;
+            }
+
+            pub fn is0() bool {
+                return (*REG_DISPCNT) & 0x00000010 == 0;
+            }
+
+            pub fn is1() bool {
+                return (*REG_DISPCNT) & 0x00000010 != 0;
+            }
+
+            pub fn get() u8 {
+                if ((*REG_DISPCNT & 0x00000010) == 0) {
+                    return 0;
+                }
+                return 1;
+            }
+
+            pub fn flip() void {
+                (*REG_DISPCNT) ^= 0x00000010;
+            }
+        };
+
+        // TODO
+        // DCNT_HB
+        // DCNT_OM
+        // DCNT_FB
+        // DCNT_BG{0-3}
+        // DCNT_WIN{0-1,OBJECT}
+        //
+        // REG_DISPSTAT
+        // REG_VCOUNT
+    };
 };
 
 pub const Color = struct {
