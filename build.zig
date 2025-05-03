@@ -43,7 +43,7 @@ pub fn build(b: *std.Build) void {
     // GBA-specific code, e.g., manipulation of registers, will not be
     // covered by unit tests.
     const lib_unit_tests = b.addTest(.{
-        .root_source_file = b.path( "src/ut.zig"),
+        .root_source_file = b.path( "src/unittest.zig"),
         .target = target,
         .optimize = optimize,
     });
