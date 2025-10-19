@@ -23,19 +23,18 @@ fn buildGBAThumbTarget(b: *std.Build) std.Build.ResolvedTarget {
 pub const GBARomOptions = struct {
     optimize: std.builtin.OptimizeMode,
     name: []const u8,
-    root_source_file: []const u8,
+    root_source_file: std.Build.LazyPath,
 };
 
 pub fn addROM(b: *std.Build, options: GBARomOptions) *std.Build.Step.Compile {
     const gba_thumb_target = buildGBAThumbTarget(b);
     const rom = b.addExecutable(.{
         .name = options.name,
-        .root_source_file = .{ .src_path = .{
-            .owner = b,
-            .sub_path = options.root_source_file,
-        } },
-        .target = gba_thumb_target,
-        .optimize = options.optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = options.root_source_file,
+            .optimize = options.optimize,
+            .target = gba_thumb_target,
+        }),
     });
     rom.setLinkerScript(std.Build.LazyPath{ .src_path = .{
         .owner = b,

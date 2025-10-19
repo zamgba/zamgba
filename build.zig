@@ -34,7 +34,7 @@ pub fn build(b: *std.Build) void {
     var first = arm.addROM(b, .{
         .optimize = optimize,
         .name = "first",
-        .root_source_file = FirstDemoRoot,
+        .root_source_file = b.path(FirstDemoRoot),
     });
 
     first.root_module.addImport(LibName, m);
@@ -43,9 +43,11 @@ pub fn build(b: *std.Build) void {
     // GBA-specific code, e.g., manipulation of registers, will not be
     // covered by unit tests.
     const lib_unit_tests = b.addTest(.{
-        .root_source_file = b.path( "src/unittest.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/unittest.zig"),
+            .optimize = optimize,
+            .target = target,
+        }),
     });
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
