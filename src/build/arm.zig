@@ -41,6 +41,9 @@ pub fn addROM(b: *std.Build, options: GBARomOptions) *std.Build.Step.Compile {
         .sub_path = GBALinkerScript,
     } });
 
+    // Keep the original ELF for linker debugging
+    b.installArtifact(rom);
+
     // Create true rom image that can be recognized by mgba emulator.
     // Known issue: The built executable (in ELF format) can't be
     // executed by mgba emulator, unlike devkitARM. Root cause needs
