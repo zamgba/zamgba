@@ -212,7 +212,7 @@ export fn _boot() linksection(".gba.boot") void {
     while (true) {}
 }
 
-export fn _start() linksection(".gba.start") void {
+export fn _start() linksection(".gba.start") callconv(.naked) void {
     // Line 1: Set register base to ioram
     // Line 2-4: Turn on IRQ mode (see gbadoc->hardware-interrupts)
     // Line 5: Set IRQ Stack: 0x03000000 - 0x60 = 0x03007FA0
