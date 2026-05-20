@@ -52,7 +52,7 @@ test "drawLine vertical" {
     };
 
     var ctx = TestContext{};
-    drawLine(Point2{ .x = 5, .y = 5 }, Point2{ .x = 5, .y = 10 }, 0xFFFF, &ctx);
+    drawLine(Point2.init(5, 5), Point2.init(5, 10), 0xFFFF, &ctx);
 
     try std.testing.expectEqual(@as(u16, 0xFFFF), ctx.vram[5][5]);
     try std.testing.expectEqual(@as(u16, 0xFFFF), ctx.vram[10][5]);
@@ -72,7 +72,7 @@ test "drawLine diagonal" {
     };
 
     var ctx = TestContext{};
-    drawLine(Point2{ .x = 0, .y = 0 }, Point2{ .x = 5, .y = 5 }, 0x1234, &ctx);
+    drawLine(Point2.init(0, 0), Point2.init(5, 5), 0x1234, &ctx);
 
     try std.testing.expectEqual(@as(u16, 0x1234), ctx.vram[0][0]);
     try std.testing.expectEqual(@as(u16, 0x1234), ctx.vram[3][3]);

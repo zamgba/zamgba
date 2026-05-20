@@ -41,9 +41,9 @@ export fn main() noreturn {
 
     var ctx = hal.context.Mode3Context.init();
 
-    gfx2d.drawLine(gfx2d.Point2{ .x = 10, .y = 10 }, gfx2d.Point2{ .x = 230, .y = 150 }, 0x001F, &ctx);
-    gfx2d.drawLine(gfx2d.Point2{ .x = 230, .y = 10 }, gfx2d.Point2{ .x = 10, .y = 150 }, 0x03E0, &ctx);
-    gfx2d.drawLine(gfx2d.Point2{ .x = 120, .y = 10 }, gfx2d.Point2{ .x = 120, .y = 150 }, 0x7C00, &ctx);
+    gfx2d.drawLine(gfx2d.Point2.init(10, 10), gfx2d.Point2.init(230, 150), 0x001F, &ctx);
+    gfx2d.drawLine(gfx2d.Point2.init(230, 10), gfx2d.Point2.init(10, 150), 0x03E0, &ctx);
+    gfx2d.drawLine(gfx2d.Point2.init(120, 10), gfx2d.Point2.init(120, 150), 0x7C00, &ctx);
 
     // The loop is required to match the ``noreturn`` return value.
     // Zamgba does not handle program exit gracefully because GBA
