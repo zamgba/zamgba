@@ -2,7 +2,7 @@ const std = @import("std");
 
 /// Draws a line from (x0, y0) to (x1, y1) using Bresenham's line algorithm.
 /// `context` is a pointer to a struct that represents the drawing surface.
-/// `drawPixel` is a function that takes the context, x, y, and color, and draws a pixel.
+/// It must expose a `drawPixel(self: @TypeOf(context), x: i32, y: i32, c: u16) void` method.
 pub fn drawLine(
     x0: i32,
     y0: i32,
@@ -10,7 +10,6 @@ pub fn drawLine(
     y1: i32,
     color: u16,
     context: anytype,
-    comptime drawPixel: fn (ctx: @TypeOf(context), x: i32, y: i32, c: u16) void,
 ) void {
     var x = x0;
     var y = y0;
@@ -28,7 +27,7 @@ pub fn drawLine(
     var err = dx + dy;
 
     while (true) {
-        drawPixel(context, x, y, color);
+        context.drawPixel(x, y, color);
         if (x == x1 and y == y1) break;
         const e2 = 2 * err;
         if (e2 >= dy) {
@@ -54,7 +53,7 @@ test "drawLine vertical" {
     };
 
     var ctx = TestContext{};
-    drawLine(5, 5, 5, 10, 0xFFFF, &ctx, TestContext.drawPixel);
+    drawLine(5, 5, 5, 10, 0xFFFF, &ctx);
 
     try std.testing.expectEqual(@as(u16, 0xFFFF), ctx.vram[5][5]);
     try std.testing.expectEqual(@as(u16, 0xFFFF), ctx.vram[10][5]);
@@ -74,7 +73,7 @@ test "drawLine diagonal" {
     };
 
     var ctx = TestContext{};
-    drawLine(0, 0, 5, 5, 0x1234, &ctx, TestContext.drawPixel);
+    drawLine(0, 0, 5, 5, 0x1234, &ctx);
 
     try std.testing.expectEqual(@as(u16, 0x1234), ctx.vram[0][0]);
     try std.testing.expectEqual(@as(u16, 0x1234), ctx.vram[3][3]);
