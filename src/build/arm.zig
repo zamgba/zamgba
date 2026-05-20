@@ -6,8 +6,8 @@ fn libRoot() []const u8 {
     return std.fs.path.dirname(@src().file) orelse ".";
 }
 
-const GBALibFile = libRoot() ++ "/../hardware/gba.zig";
-const GBALinkerScript = libRoot() ++ "/../hardware/gba.ld";
+const GBALibFile = libRoot() ++ "/../hal/gba.zig";
+const GBALinkerScript = libRoot() ++ "/../hal/gba.ld";
 
 fn buildGBAThumbTarget(b: *std.Build) std.Build.ResolvedTarget {
     var query = std.Target.Query{
