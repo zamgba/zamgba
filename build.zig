@@ -21,7 +21,7 @@ pub fn build(b: *std.Build) void {
 
     // Hardware Abstraction Layer module
     const hal_module = b.addModule("zamgba-hal", .{
-        .root_source_file = b.path("src/hal/gba.zig"),
+        .root_source_file = b.path("src/hal/hal.zig"),
     });
 
     // 2D Drawing Algorithm module (platform-agnostic)
