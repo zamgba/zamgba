@@ -1,34 +1,33 @@
 const std = @import("std");
+const Point2 = @import("point.zig").Point2;
 
-/// Draws a line from (x0, y0) to (x1, y1) using Bresenham's line algorithm.
+/// Draws a line from p0 to p1 using Bresenham's line algorithm.
 /// `context` is a pointer to a struct that represents the drawing surface.
 /// It must expose a `drawPixel(self: @TypeOf(context), x: i32, y: i32, c: u16) void` method.
 pub fn drawLine(
-    x0: i32,
-    y0: i32,
-    x1: i32,
-    y1: i32,
+    p0: Point2,
+    p1: Point2,
     color: u16,
     context: anytype,
 ) void {
-    var x = x0;
-    var y = y0;
+    var x = p0.x;
+    var y = p0.y;
 
-    var dx: i32 = x1 - x0;
+    var dx: i32 = p1.x - p0.x;
     if (dx < 0) dx = -dx;
 
-    var dy: i32 = y1 - y0;
+    var dy: i32 = p1.y - p0.y;
     if (dy < 0) dy = -dy;
     dy = -dy;
 
-    const sx: i32 = if (x0 < x1) 1 else -1;
-    const sy: i32 = if (y0 < y1) 1 else -1;
+    const sx: i32 = if (p0.x < p1.x) 1 else -1;
+    const sy: i32 = if (p0.y < p1.y) 1 else -1;
 
     var err = dx + dy;
 
     while (true) {
         context.drawPixel(x, y, color);
-        if (x == x1 and y == y1) break;
+        if (x == p1.x and y == p1.y) break;
         const e2 = 2 * err;
         if (e2 >= dy) {
             err += dy;
@@ -53,7 +52,7 @@ test "drawLine vertical" {
     };
 
     var ctx = TestContext{};
-    drawLine(5, 5, 5, 10, 0xFFFF, &ctx);
+    drawLine(Point2.init(5, 5), Point2.init(5, 10), 0xFFFF, &ctx);
 
     try std.testing.expectEqual(@as(u16, 0xFFFF), ctx.vram[5][5]);
     try std.testing.expectEqual(@as(u16, 0xFFFF), ctx.vram[10][5]);
@@ -73,7 +72,7 @@ test "drawLine diagonal" {
     };
 
     var ctx = TestContext{};
-    drawLine(0, 0, 5, 5, 0x1234, &ctx);
+    drawLine(Point2.init(0, 0), Point2.init(5, 5), 0x1234, &ctx);
 
     try std.testing.expectEqual(@as(u16, 0x1234), ctx.vram[0][0]);
     try std.testing.expectEqual(@as(u16, 0x1234), ctx.vram[3][3]);
