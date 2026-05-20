@@ -35,8 +35,8 @@ pub const Mode5Context = struct {
 
     /// Implements the pixel drawing interface required by `zamgba-gfx2d`.
     pub fn drawPixel(ctx: *@This(), x: i32, y: i32, color: u16) void {
-        if (x >= 0 and x < 160 and y >= 0 and y < 128) {
-            const index = @as(usize, @intCast(y)) * 160 + @as(usize, @intCast(x));
+        if (x >= 0 and x < gba.Screen.MODE5_WIDTH_PIXELS and y >= 0 and y < gba.Screen.MODE5_HEIGHT_PIXELS) {
+            const index = @as(usize, @intCast(y)) * gba.Screen.MODE5_WIDTH_PIXELS + @as(usize, @intCast(x));
             ctx.page_base[index] = color;
         }
     }

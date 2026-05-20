@@ -60,6 +60,9 @@ pub const MemorySections = struct {
 pub const Screen = struct {
     pub const WIDTH_PIXELS = 240;
     pub const HEIGHT_PIXELS = 160;
+
+    pub const MODE5_WIDTH_PIXELS = 160;
+    pub const MODE5_HEIGHT_PIXELS = 128;
 };
 
 pub const Display = @import("display.zig");
