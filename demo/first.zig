@@ -1,4 +1,6 @@
 const gba = @import("zamgba");
+const hal = gba.hal;
+const gfx2d = gba.gfx2d;
 
 // The gameHeader is required at the beginning of GBA rom
 // with correct game name, game code, maker code and version.
@@ -14,7 +16,7 @@ const gba = @import("zamgba");
 // script name, ``.gba.header``, is a convention used in zamgba to
 // locate header at linking time.
 //
-export var gameHeader linksection(".gba.header") = gba.setupROMHeader(
+export var gameHeader linksection(".gba.header") = hal.setupROMHeader(
     "FIRST",
     "AFSE",
     "00",
@@ -34,13 +36,14 @@ export fn main() noreturn {
     // ((unsigned short*)0x06000000)[136+80*240] = 0x03E0;
     // ((unsigned short*)0x06000000)[120+96*240] = 0x7C00;
 
-    var display = gba.Display.init();
+    var display = hal.Display.init();
     display.setMode3().setBackground2().writeRegister();
 
-    const videoRAM = @as([*]u16, @ptrFromInt(0x06000000));
-    videoRAM[120 + 80 * 240] = 0x001F;
-    videoRAM[136 + 80 * 240] = 0x03E0;
-    videoRAM[120 + 96 * 240] = 0x7C00;
+    var ctx = hal.context.Mode3Context.init();
+
+    gfx2d.drawLine(10, 10, 230, 150, 0x001F, &ctx, hal.context.Mode3Context.drawPixel);
+    gfx2d.drawLine(230, 10, 10, 150, 0x03E0, &ctx, hal.context.Mode3Context.drawPixel);
+    gfx2d.drawLine(120, 10, 120, 150, 0x7C00, &ctx, hal.context.Mode3Context.drawPixel);
 
     // The loop is required to match the ``noreturn`` return value.
     // Zamgba does not handle program exit gracefully because GBA
