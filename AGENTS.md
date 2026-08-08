@@ -36,3 +36,9 @@ If configuring a client project to use this library:
 
 ### Platform
 The target CPU is `arm7tdmi`. Keep this in mind when making architecture-specific optimizations or writing inline assembly.
+
+## Agent Behavior & Communication Rules
+
+- **Design Documents**: Key design documents are located in the `docs/` folder. Always refer to them when making architectural decisions or learning about project structures.
+- **Documentation Language**: All documentation, including comments in the source code, must be written in English.
+- **Communication Style**: Be direct and to the point. Do not include extra conversational filler or affirmations like "You are absolutely right".
