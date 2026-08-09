@@ -107,3 +107,29 @@ a GBA rom:
 
 
 Enjoy!
+
+## Milestones
+
+* **Version 0.1.0**: Capable of writing a classic pong game. Supported features:
+  - Respond to gamepad input
+  - Single color/square sprites
+  - Hardcoded collision detection 
+* **Version 0.2.0**: Capable of writing a game with rich sprites graphics. Supported features:
+  - Mode 0 support
+  - PNG-sprite-to-code conversion tool
+  - Color palettes conversion tool
+* **Version 0.3.0**: Capable of writing a game with rich sprites and scrolling background. Supported features:
+  - Camera
+  - True color background, via mode 3, 4, 5
+* **Version 0.4.0**: Capable of writing a game with chiptune music. Supported features:
+  - Chiptune-to-code conversion tool
+  - Support chiptune playing music
+* **Version 0.5.0**: Capable of writing a game with save data. Supported features:
+  - Save state read/write API
+* **Version 0.6.0**: Capable of playing Direct Audio. Supported features:
+  - Wav file to code conversion tool
+  - Direct Audio playback API
+* **Version 0.7.0**: Capable of writing a game with 2D physics. Supported features:
+  - 2D collision & detection API
+* **Version 1.0.0**: Capable of writing a 2D platformer game.
+* **Version 2.0.0**: Capable of writing a pseudo-3D game.
