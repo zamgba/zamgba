@@ -161,13 +161,28 @@ pub fn setupROMHeader(
     return h;
 }
 
+
 fn zeroBss() void {
     // Clear memory of .bss section
     // (between _sbss and _ebss), filling them to all 0.
+    var dst = @as([*]u8, @ptrCast(&_sbss));
+    const end = @as([*]u8, @ptrCast(&_ebss));
+    while (@intFromPtr(dst) < @intFromPtr(end)) : (dst += 1) {
+        dst[0] = 0;
+    }
 }
+
 
 fn copyDataToEWRAM() void {
     // Copy .data section to EWRAM
+    var src = @as([*]u8, @ptrCast(&_sidata));
+    var dst = @as([*]u8, @ptrCast(&_sdata));
+    const end = @as([*]u8, @ptrCast(&_edata));
+    while (@intFromPtr(dst) < @intFromPtr(end)) {
+        dst[0] = src[0];
+        dst += 1;
+        src += 1;
+    }
 }
 
 fn callUserMain() void {
