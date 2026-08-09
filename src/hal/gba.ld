@@ -53,7 +53,6 @@ SECTIONS
         . = ALIGN(4);
     } > pakrom
 
-    /*
     .rodata : {
         *(.rodata .rodata.*);
         . = ALIGN(4);
@@ -67,7 +66,7 @@ SECTIONS
 
         . = ALIGN(4);
         _edata = .;
-    } > iwram AT > pakrom
+    } > ewram AT > pakrom
 
     .bss : {
         . = ALIGN(4);
@@ -75,11 +74,10 @@ SECTIONS
         *(.bss);
         . = ALIGN(4);
         _ebss = .;
-    } > iwram
+    } > ewram
 
     /DISCARD/ :
     {
         *(.ARM.exidx .ARM.exidx.*);
     }
-    */
 }
