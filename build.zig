@@ -33,7 +33,7 @@ pub fn build(b: *std.Build) void {
     const engine_module = b.addModule("zamgba-engine", .{
         .root_source_file = b.path("src/engine/engine.zig"),
     });
-    engine_module.addImport("zamgba-hal", hal_module);
+    
     engine_module.addImport("zamgba-sys", sys_module);
 
     // 2D Drawing Algorithm module (platform-agnostic)

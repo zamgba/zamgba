@@ -63,3 +63,14 @@ Provides platform-agnostic, mathematics-based drawing routines for procedural re
 
 1.  **Zero-Cost Abstractions**: By leveraging Zig generics (`anytype` and `@hasDecl`), `Engine.run` resolves completely at compile-time. No virtual tables (vtables) or dynamic pointer dispatches are generated in the compiled machine code, leaving maximum performance for the GBA's 16.78 MHz CPU.
 2.  **Encapsulation of Workarounds**: Hardware workarounds (like OAM Shadowing) are tucked away into the Low-Level Core, allowing developers to draw sprites smoothly in a standard 60 FPS update-and-render game loop.
+
+## 4. Strict Layering Design Rules
+
+To prevent spaghetti logic and ensure the GBA SDK stays modular and safe, Zamgba enforces the following strict architectural coupling rules:
+
+1.  **Strict Linear Dependency (`engine` -> `sys` -> `hal`)**: 
+    The high-level `engine` module must only communicate downward through the `sys` abstraction layer. It is forbidden for `engine` to directly import `zamgba-hal` or invoke hardware manipulation methods bypassing the system drivers.
+2.  **No Cross-Layer Leakage**:
+    Functions in the `engine` layer must never accept or return `hal` types in their parameters or return signatures. Any hardware configuration must be securely wrapped and translated into generic structures by the `sys` layer before crossing the boundary into the high-level framework.
+3.  **No Upward Dependency (Acyclic Layering)**:
+    A lower-tier module (`hal` or `sys`) is strictly oblivious to the tiers above it. `hal` cannot depend on `sys` or `engine`, and `sys` cannot depend on `engine`.

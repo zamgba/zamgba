@@ -1,4 +1,3 @@
-const hal = @import("zamgba-hal");
 const sys = @import("zamgba-sys");
 
 pub const Sprite = @import("sprite.zig").Sprite;
@@ -22,7 +21,7 @@ pub const Engine = struct {
     /// 3. Resets the frame-level state (like sprite slot allocators) so the next frame starts fresh.
     pub fn nextFrame(self: *Engine) void {
         // Wait for VBlank
-        hal.waitForVBlank();
+        sys.video.VideoManager.waitForVBlank();
 
         // Flush shadow memory to hardware
         self.oam.copyToHardware();
