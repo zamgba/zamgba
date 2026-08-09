@@ -21,7 +21,7 @@ var dx: i32 = 1;
 pub fn tick(eng: *engine.Engine) void {
     // 1. Move the high-level sprite's position
     spr.x += dx;
-    if (spr.x > 240 - 8 or spr.x < 0) {
+    if (spr.x >= 240 - 8 or spr.x <= 0) {
         dx = -dx;
     }
 

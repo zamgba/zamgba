@@ -23,7 +23,7 @@ const Game = struct {
     pub fn tick(self: *@This(), eng: *engine.Engine) void {
         // 1. Move the sprite using the instance state
         self.spr.x += self.dx;
-        if (self.spr.x > 240 - 8 or self.spr.x < 0) {
+        if (self.spr.x >= 240 - 8 or self.spr.x <= 0) {
             self.dx = -self.dx;
         }
 
