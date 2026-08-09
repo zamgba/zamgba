@@ -4,24 +4,40 @@ The Zamgba SDK provides high-level APIs for 2D games on the Game Boy Advance. It
 
 ## Planned Features
 
-1. **2D Graphics**
-   - [ ] Sprite maps (Tile/Map modes)
-   - [ ] Picture mode (Bitmap modes)
+1. **2D Graphics & Sprites (v0.1.0 - v0.3.0)**
+   - [ ] Sprite maps (Tile/Map modes) - *Mode 0 support*
+   - [ ] Picture mode (Bitmap modes) - *True color background via Mode 3, 4, 5*
    - [x] Architecture Planning (Tiered approach)
    - [ ] High-level abstractions for palettes and object attributes (OAM) - *In Progress*
+   - [ ] Single color/square sprites
+   - [ ] Camera support for scrolling backgrounds
 
 2. **Architecture Layers (New)**
    - **Tier 1 (HAL):** `zamgba.hal` - Hardware limits, memory, registers.
    - **Tier 2 (SYS):** `zamgba.sys` - OAM shadow, VRAM allocators, state tracking.
    - **Tier 3 (ENGINE):** `zamgba.engine` - High-level entities (Sprite, Camera, TileMap).
 
-2. **Audio**
-   - PSG (Programmable Sound Generator / Chiptune) support
-   - Direct Sound (PCM) support
+3. **Input (v0.1.0)**
+   - [ ] Respond to gamepad input
 
-3. **Save System**
-   - High-level state persistence
-   - Hardware-dependent implementation (relies on external hardware/emulator capabilities like SRAM, Flash, or EEPROM)
+4. **Audio (v0.4.0 & v0.6.0)**
+   - [ ] PSG (Programmable Sound Generator / Chiptune) support
+   - [ ] Direct Sound (PCM / Direct Audio playback) support
 
-4. **Physics & Collision**
-   - Built-in 2D box (AABB) collision engine
+5. **Save System (v0.5.0)**
+   - [ ] High-level state persistence (Save state read/write API)
+   - [ ] Hardware-dependent implementation (relies on external hardware/emulator capabilities like SRAM, Flash, or EEPROM)
+
+6. **Physics & Collision (v0.7.0)**
+   - [ ] Built-in 2D box (AABB) collision engine (2D collision & detection API)
+   - [ ] Hardcoded collision detection (Early milestone)
+
+7. **Tooling & Asset Conversion**
+   - [ ] PNG-sprite-to-code conversion tool
+   - [ ] Color palettes conversion tool
+   - [ ] Chiptune-to-code conversion tool
+   - [ ] Wav file to code conversion tool
+
+8. **Advanced Game Capabilities (v1.0.0 & v2.0.0)**
+   - [ ] 2D platformer game framework capabilities
+   - [ ] Pseudo-3D game rendering support
