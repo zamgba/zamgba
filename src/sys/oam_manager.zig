@@ -1,7 +1,7 @@
 const hal = @import("zamgba-hal");
 
 /// OAM shadow memory block (128 objects)
-/// A single OAM entry is 64 bits (8 bytes): 
+/// A single OAM entry is 64 bits (8 bytes):
 /// attr0 (16-bit), attr1 (16-bit), attr2 (16-bit), affine (16-bit).
 pub const ObjAttr = packed struct {
     attr0: u16,
@@ -13,7 +13,7 @@ pub const ObjAttr = packed struct {
 pub const OamManager = struct {
     /// The shadow OAM. We manipulate this safely during the frame.
     shadow: [128]ObjAttr = undefined,
-    
+
     /// Initializes the shadow OAM by hiding all sprites (setting Y outside screen).
     pub fn init(self: *OamManager) void {
         for (&self.shadow) |*obj| {
@@ -29,11 +29,11 @@ pub const OamManager = struct {
         }
     }
 
-    /// Update the hardware OAM with the shadow copy. 
+    /// Update the hardware OAM with the shadow copy.
     /// Should only be called during VBlank to avoid tearing.
     pub fn copyToHardware(self: *OamManager) void {
-        const hw_oam = @as([*]volatile ObjAttr, @ptrCast(hal.MemorySections.OAM));
-        
+        const hw_oam = @as([*]volatile ObjAttr, @ptrCast(@alignCast(hal.MemorySections.OAM)));
+
         // A simple copy. In the future, this should be optimized using DMA3.
         for (self.shadow, 0..) |obj, i| {
             hw_oam[i] = obj;

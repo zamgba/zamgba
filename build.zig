@@ -67,6 +67,14 @@ pub fn build(b: *std.Build) void {
 
     first.root_module.addImport(LibName, m);
 
+    var second = arm.addROM(b, .{
+        .optimize = optimize,
+        .name = "second",
+        .root_source_file = b.path("demo/second.zig"),
+    });
+
+    second.root_module.addImport(LibName, m);
+
     // Unit tests are compiled and executed in host machine. Some
     // GBA-specific code, e.g., manipulation of registers, will not be
     // covered by unit tests.
