@@ -1,7 +1,7 @@
 const gba = @import("zamgba");
 const hal = gba.hal;
 const sys = gba.sys;
-const gfx2d = gba.gfx2d;
+const gfx2d = gba.engine.gfx2d;
 
 // The gameHeader is required at the beginning of GBA rom
 // with correct game name, game code, maker code and version.

@@ -37,9 +37,6 @@ pub fn build(b: *std.Build) void {
     engine_module.addImport("zamgba-sys", sys_module);
 
     // 2D Drawing Algorithm module (platform-agnostic)
-    const gfx2d_module = b.addModule("zamgba-gfx2d", .{
-        .root_source_file = b.path("src/gfx2d/gfx2d.zig"),
-    });
 
     // Define a module that can be referenced by client project.
     // It's also the interface for client project to consume zamgba.
@@ -55,7 +52,6 @@ pub fn build(b: *std.Build) void {
     m.addImport("zamgba-hal", hal_module);
     m.addImport("zamgba-sys", sys_module);
     m.addImport("zamgba-engine", engine_module);
-    m.addImport("zamgba-gfx2d", gfx2d_module);
 
     // Step 2: Create demo executables
     var first = arm.addROM(b, .{
@@ -105,7 +101,6 @@ pub fn build(b: *std.Build) void {
     lib_unit_tests.root_module.addImport("zamgba-hal", hal_module);
     lib_unit_tests.root_module.addImport("zamgba-sys", sys_module);
     lib_unit_tests.root_module.addImport("zamgba-engine", engine_module);
-    lib_unit_tests.root_module.addImport("zamgba-gfx2d", gfx2d_module);
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     const test_step = b.step("test", "Run unit tests");
