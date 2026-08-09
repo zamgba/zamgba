@@ -69,3 +69,6 @@ To successfully use Zamgba in an external/client project:
 - **Documentation**: All code comments, READMEs, and guides must be written in English.
 - **Design Documents**: Architectural guidelines are listed in the `docs/` folder. Always consult `compile.md` and `features.md` before making modifications to compiling/linking rules or features planning.
 - **Communication Style**: Direct and to the point. No conversational filler, pleasantries, or emojis.
+
+### Demo Guidelines
+- When adding a new demo, place the newly added demo ROM to the corresponding subfolder inside `demo/` (e.g., `demo/hal/` for hardware-abstraction layer demos).

@@ -4,7 +4,7 @@ const std = @import("std");
 // script.
 pub const arm = @import("./src/build/arm.zig");
 
-const FirstDemoRoot = "demo/first.zig";
+
 const LibName = "zamgba";
 
 // ====================================================================
@@ -61,16 +61,16 @@ pub fn build(b: *std.Build) void {
     // Step 2: Create demo executables
     var first = arm.addROM(b, .{
         .optimize = optimize,
-        .name = "first",
-        .root_source_file = b.path(FirstDemoRoot),
+        .name = "mode3_lines",
+        .root_source_file = b.path("demo/hal/mode3_lines.zig"),
     });
 
     first.root_module.addImport(LibName, m);
 
     var second = arm.addROM(b, .{
         .optimize = optimize,
-        .name = "sprite_hal",
-        .root_source_file = b.path("demo/sprite_hal.zig"),
+        .name = "sprite",
+        .root_source_file = b.path("demo/hal/sprite.zig"),
     });
 
     second.root_module.addImport(LibName, m);
