@@ -1,4 +1,4 @@
-const hal = @import("hal.zig");
+const hal = @import("zamgba-hal");
 
 /// A hardware-backed drawing context for GBA's Mode 3.
 /// Mode 3 is a 240x160 resolution bitmap mode with 16-bit color.

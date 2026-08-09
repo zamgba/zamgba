@@ -67,7 +67,6 @@ pub const Screen = struct {
 
 pub const Display = @import("display.zig");
 pub const waitForVBlank = Display.waitForVBlank;
-pub const context = @import("context.zig");
 
 pub const Color = struct {
     pub const BLACK: u16 = 0x0000;

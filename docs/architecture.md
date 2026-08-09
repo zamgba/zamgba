@@ -32,9 +32,10 @@ Maps GBA physical registers and exposes safe, atomic timing controls.
 *   **`hal.Display`**: Configurations for GBA hardware register flags (Modes 0-5, Object enable, 1D/2D sprite mapping).
 *   **`hal.waitForVBlank()`**: Synchronizes the CPU game loop with the hardware display beam, blocking execution until the brief vertical blanking window starts.
 
-### B. Subsystem Managers (`zamgba.sys`)
-Workarounds for hardware limits (such as the GBA's limit of exactly 128 hardware sprites).
+### B. Subsystem Managers & Drivers (`zamgba.sys`)
+Safe wrappers for GBA hardware buffers and drawing environments.
 *   **`sys.oam.OamManager`**: Implements **OAM Shadowing** using an EWRAM buffer `shadow: [128]ObjAttr`. Logic updates occur safely in EWRAM, and `copyToHardware()` copies them instantly during VBlank to prevent tearing.
+*   **`sys.context.Mode3Context` / `Mode5Context`**: State-backed bitmap drawing drivers. They wrap VRAM physical addresses with automatic horizontal/vertical boundary checks and expose a standardized `drawPixel()` interface used by high-level drawing algorithms.
 
 ---
 
