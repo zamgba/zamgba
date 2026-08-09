@@ -9,7 +9,7 @@
 /*
  * Memory layout is based on tonc and other documetations. I mainly
  * learn from lokathor.
- * 
+ *
  * 1. https://www.coranac.com/tonc/text/hardware.htm#sec-memory
  * 2. https://lokathor.github.io/gba-from-scratch/ex1.html
  * 3. https://mcyoung.xyz/2021/06/01/linker-script/
@@ -53,7 +53,6 @@ SECTIONS
         . = ALIGN(4);
     } > pakrom
 
-    /*
     .rodata : {
         *(.rodata .rodata.*);
         . = ALIGN(4);
@@ -63,23 +62,22 @@ SECTIONS
         _sidata = LOADADDR(.data);
         . = ALIGN(4);
         _sdata = .;
-        *(.data);
+        *(.data .data.*);
 
         . = ALIGN(4);
         _edata = .;
-    } > iwram AT > pakrom
+    } > ewram AT>pakrom
 
     .bss : {
         . = ALIGN(4);
         _sbss = .;
-        *(.bss);
+        *(.bss .bss.*);
         . = ALIGN(4);
         _ebss = .;
-    } > iwram
+    } > ewram
 
     /DISCARD/ :
     {
         *(.ARM.exidx .ARM.exidx.*);
     }
-    */
 }
