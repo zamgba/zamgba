@@ -5,9 +5,15 @@ The Zamgba SDK provides high-level APIs for 2D games on the Game Boy Advance. It
 ## Planned Features
 
 1. **2D Graphics**
-   - Sprite maps (Tile/Map modes)
-   - Picture mode (Bitmap modes)
-   - High-level abstractions for palettes and object attributes (OAM)
+   - [ ] Sprite maps (Tile/Map modes)
+   - [ ] Picture mode (Bitmap modes)
+   - [x] Architecture Planning (Tiered approach)
+   - [ ] High-level abstractions for palettes and object attributes (OAM) - *In Progress*
+
+2. **Architecture Layers (New)**
+   - **Tier 1 (HAL):** `zamgba.hal` - Hardware limits, memory, registers.
+   - **Tier 2 (SYS):** `zamgba.sys` - OAM shadow, VRAM allocators, state tracking.
+   - **Tier 3 (ENGINE):** `zamgba.engine` - High-level entities (Sprite, Camera, TileMap).
 
 2. **Audio**
    - PSG (Programmable Sound Generator / Chiptune) support
