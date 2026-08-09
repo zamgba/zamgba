@@ -1,66 +1,64 @@
 # Zamgba SDK Architectural Design
 
-The Zamgba SDK utilizes a structured, **3-Tier Architecture** to bridge the low-level, bare-metal hardware of the Game Boy Advance (GBA) with a highly productive, expressive 2D game engine experience.
+The Zamgba SDK utilizes a consolidated, highly pragmatic **2-Layer Architecture** designed to completely isolate the GBA's bare-metal complexities from the user-facing game logic.
 
 ---
 
 ```mermaid
 graph TD
-    subgraph Tier 3: High-Level Framework
+    subgraph High-Level Framework (Developer Facing)
         E[engine.Engine] --> S[engine.Sprite]
-    end
-    subgraph Tier 2: Subsystems & Managers
-        M[sys.oam.OamManager] --> V[VRAM/Palette Allocation]
-    end
-    subgraph Tier 1: Hardware Abstraction Layer
-        H[hal.Display] --> R[hal.MemorySections]
+        E --> G[gfx2d.Drawing Algorithms]
     end
 
-    E -.-> M
-    S -.-> H
-    M -.-> H
+    subgraph Low-Level Core (Under the Hood)
+        O[sys.oam.OamManager] --> H[hal.Display]
+        O --> R[hal.MemorySections]
+    end
+
+    E ==>|1. Synchronizes and flushes graphics to| O
+    S ==>|2. Translates logical coordinates to| O
 ```
 
 ---
 
-## 1. Tier 1: Hardware Abstraction Layer (HAL) — `zamgba.hal`
+## 1. The Low-Level Core (Under the Hood)
 
-The foundation of the SDK. It directly wraps GBA hardware features, I/O registers, memory sections, and hardware timing routines.
+This layer acts as the GBA's **Hardware Driver Layer**. It handles direct physical registers, volatile memory segments, and strict hardware constraints. Game developers rarely touch this layer directly.
 
-*   **`hal.MemorySections`**: Defines raw memory-mapped GBA segments (VRAM, EWRAM, PALRAM, OAM).
-*   **`hal.Display`**: Safe abstractions for configuring display modes (Mode 0-5) and background/object capabilities (e.g., `setMode0()`, `setObject()`).
-*   **`hal.waitForVBlank()`**: Reads the hardware scanline register `REG_VCOUNT` and blocks execution safely until the vertical blanking phase begins, which is the only safe window to modify graphics memory without visual tearing.
+### A. Hardware Abstraction Layer (`zamgba.hal`)
+Maps GBA physical registers and exposes safe, atomic timing controls.
+*   **`hal.MemorySections`**: Direct pointers to physical segments like VRAM (`0x06000000`), PALRAM (`0x05000000`), and OAM (`0x07000000`).
+*   **`hal.Display`**: Configurations for GBA hardware register flags (Modes 0-5, Object enable, 1D/2D sprite mapping).
+*   **`hal.waitForVBlank()`**: Synchronizes the CPU game loop with the hardware display beam, blocking execution until the brief vertical blanking window starts.
 
----
-
-## 2. Tier 2: Subsystems & Managers — `zamgba.sys`
-
-Acts as a performance-minded middleman. It manages limited hardware assets (such as the GBA's strict limit of 128 hardware sprites and 96KB of VRAM) using double-buffering and shadow memories to keep gameplay fast and fluid.
-
-*   **`sys.oam.ObjAttr`**: Represents the tightly packed 64-bit GBA hardware object configuration (position, shape, palette bank, tile index).
-*   **`sys.oam.OamManager`**: 
-    *   Holds an internal software mirror buffer (`shadow: [128]ObjAttr`) in fast system work RAM (EWRAM).
-    *   **`init()`**: Sets up initial offscreen sprite values to clear hardware garbage data.
-    *   **`copyToHardware()`**: Synchronizes the staging mirror buffer directly to the real GBA hardware OAM memory during VBlank.
+### B. Subsystem Managers (`zamgba.sys`)
+Workarounds for hardware limits (such as the GBA's limit of exactly 128 hardware sprites).
+*   **`sys.oam.OamManager`**: Implements **OAM Shadowing** using an EWRAM buffer `shadow: [128]ObjAttr`. Logic updates occur safely in EWRAM, and `copyToHardware()` copies them instantly during VBlank to prevent tearing.
 
 ---
 
-## 3. Tier 3: High-Level Framework — `zamgba.engine`
+## 2. The High-Level Framework (Developer Facing)
 
-The developer-facing framework. It abstracts away hardware bitfiddling, memory-offsets, and register-synchronization, offering high-level concepts for scene management, object-oriented/procedural drawing, and game loops.
+This is the **Game Engine Layer**. It is the primary API interface for the game developer, combining game loop orchestration, logical entities, and 2D drawing routines.
 
-*   **`engine.Sprite`**: High-level game entity containing logical properties (`x: i32`, `y: i32`, `width: u32`, `height: u32`). It exposes `toOamAttr()` to auto-encode logical sizes into the hardware attribute bitmasks.
+### A. Engine Orchestration (`zamgba.engine`)
+*   **`engine.Sprite`**: A high-level entity representing a renderable object on screen. Holds friendly logical variables (`x: i32`, `y: i32`, `width`, `height`). It uses `toOamAttr()` to automatically calculate the GBA's complex shape/size bitmasks under the hood.
 *   **`engine.Engine`**: 
-    *   Manages game frame lifecycles, and automatically translates engine-level graphics requests down to Tier 2 subsystems.
-    *   **`drawSprite(spr)`**: Hides manual index mapping (e.g., slot `0`) by automatically allocating the next available hardware slot from the GBA's 128 available channels.
-    *   **`nextFrame()`**: Bundles frame timing (`hal.waitForVBlank()`), graphics commits (`oam.copyToHardware()`), and sprite slot allocator resets into a single call.
-    *   **`run(context)`**: The compile-time generic run loop runner. It accepts either:
-        1.  **Static Namespaces (`@This()`)**: To run file-struct layouts where state is declared cleanly as file-scope `var` globals.
-        2.  **Instance Pointers (`&game`)**: To run fully encapsulated structs, supporting save state serialization (SRAM/Flash) and multiple scenes.
+    *   **`drawSprite(spr)`**: Dynamically maps high-level sprites to the next available physical slot (0 to 127) for the current frame.
+    *   **`nextFrame()`**: Bundles frame timing (`hal.waitForVBlank()`), graphics flushing (`oam.copyToHardware()`), and dynamic sprite slot resets.
+    *   **`run(context)`**: The compile-time monomorphized loop runner. It accepts either:
+        1.  **Static Namespaces (`@This()` of a file)**: Treating files as implicit singleton structs for easy prototyping (state resides in file-scope variables).
+        2.  **Instance Pointers (`&game`)**: Passing fully encapsulated game structs, supporting level transitions, and cartridge save state serialization (SRAM).
+
+### B. 2D Graphics Algorithms (`zamgba.gfx2d`)
+Provides platform-agnostic, mathematics-based drawing routines for procedural rendering on bitmap or canvas contexts.
+*   **`gfx2d.drawLine(start, end, color, context)`**: Implements Bresenham's line algorithm to paint lines onto bitmap-backed drawing buffers.
+*   **`gfx2d.Point2` / `gfx2d.Vector2`**: High-level geometric structures for manipulating coordinates.
 
 ---
 
-## 4. Key Design Tradeoffs
+## 3. Key Design Tradeoffs & Benefits
 
-1.  **Static vs. Instanced State Loops**: Supporting both styles in `Engine.run` allows beginners to prototype self-contained menus and levels instantly via `@This()` singletons, while providing a frictionless upgrade path to instanced structs when developing larger games with carry-over player variables and SRAM saving.
-2.  **Monomorphized Generics**: By leveraging Zig’s compile-time types (`anytype` and `@hasDecl`), the Engine’s loop resolves entirely at compile-time. There are zero virtual tables (vtables), dynamic dispatch offsets, or pointer wrappers compiled into the final ROM, maintaining optimal performance for the GBA's 16.78 MHz CPU.
+1.  **Zero-Cost Abstractions**: By leveraging Zig generics (`anytype` and `@hasDecl`), `Engine.run` resolves completely at compile-time. No virtual tables (vtables) or dynamic pointer dispatches are generated in the compiled machine code, leaving maximum performance for the GBA's 16.78 MHz CPU.
+2.  **Encapsulation of Workarounds**: Hardware workarounds (like OAM Shadowing) are tucked away into the Low-Level Core, allowing developers to draw sprites smoothly in a standard 60 FPS update-and-render game loop.
