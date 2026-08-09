@@ -26,11 +26,10 @@ export fn main() noreturn {
         obj_vram[i] = 0x1111; // Palette index 1 for all pixels (White)
     }
 
-    // 4. Initialize OAM Manager (Tier 2 Subsystem)
-    var oam = sys.oam.OamManager{};
-    oam.init();
+    // 4. Initialize Engine (Tier 3 High-Level Context)
+    var eng = engine.Engine.init();
 
-    // 5. Create a High-Level Sprite (Tier 3 Engine API)
+    // 5. Create a High-Level Sprite
     // We instantiate a Sprite struct at (116, 76), with size 8x8.
     var spr = engine.Sprite.init(116, 76, 8, 8);
     spr.tile_index = 0; // Point to the first tile we filled in VRAM
@@ -46,13 +45,10 @@ export fn main() noreturn {
             dx = -dx;
         }
 
-        // Translate the updated high-level properties down to the shadow slot
-        oam.shadow[0] = spr.toOamAttr();
+        // Draw (stages sprite dynamically into the next available OAM shadow slot)
+        eng.drawSprite(&spr);
 
-        // Wait for VBlank to start to prevent tearing on screen
-        hal.waitForVBlank();
-
-        // Flush shadow memory to GBA hardware
-        oam.copyToHardware();
+        // Frame synchronization (waits for VBlank, flushes shadow OAM to HW, resets slots)
+        eng.nextFrame();
     }
 }
