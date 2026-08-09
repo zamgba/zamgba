@@ -74,6 +74,13 @@ pub fn getPage() u8 {
     return 1;
 }
 
+pub fn waitForVBlank() void {
+    // Wait until the next frame starts (active rendering area)
+    while (REG_VCOUNT.* >= 160) {}
+    // Wait until VBlank starts (scanline >= 160)
+    while (REG_VCOUNT.* < 160) {}
+}
+
 pub fn flipPage() void {
     (REG_DISPCNT.*) ^= 0x0010;
 }
@@ -123,7 +130,28 @@ pub fn unsetBackground3(self: *@This()) *@This() {
     return self;
 }
 
-// DCNT_WIN{0-1,OBJECT}
+pub const DCNT_OBJ: u16 = 0x1000;
+pub const DCNT_OBJ_1D: u16 = 0x0040;
+
+pub fn setObject(self: *@This()) *@This() {
+    self.value |= DCNT_OBJ;
+    return self;
+}
+
+pub fn unsetObject(self: *@This()) *@This() {
+    self.value &= ~DCNT_OBJ;
+    return self;
+}
+
+pub fn setObject1D(self: *@This()) *@This() {
+    self.value |= DCNT_OBJ_1D;
+    return self;
+}
+
+pub fn unsetObject1D(self: *@This()) *@This() {
+    self.value &= ~DCNT_OBJ_1D;
+    return self;
+}
 //
 // REG_DISPSTAT
 // REG_VCOUNT

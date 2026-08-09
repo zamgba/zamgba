@@ -4,7 +4,6 @@ const std = @import("std");
 // script.
 pub const arm = @import("./src/build/arm.zig");
 
-const FirstDemoRoot = "demo/first.zig";
 const LibName = "zamgba";
 
 // ====================================================================
@@ -24,10 +23,20 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/hal/hal.zig"),
     });
 
-    // 2D Drawing Algorithm module (platform-agnostic)
-    const gfx2d_module = b.addModule("zamgba-gfx2d", .{
-        .root_source_file = b.path("src/gfx2d/gfx2d.zig"),
+    // Subsystems & Managers (Tier 2)
+    const sys_module = b.addModule("zamgba-sys", .{
+        .root_source_file = b.path("src/sys/sys.zig"),
     });
+    sys_module.addImport("zamgba-hal", hal_module);
+
+    // High-Level Framework (Tier 3)
+    const engine_module = b.addModule("zamgba-engine", .{
+        .root_source_file = b.path("src/engine/engine.zig"),
+    });
+    
+    engine_module.addImport("zamgba-sys", sys_module);
+
+    // 2D Drawing Algorithm module (platform-agnostic)
 
     // Define a module that can be referenced by client project.
     // It's also the interface for client project to consume zamgba.
@@ -41,16 +50,41 @@ pub fn build(b: *std.Build) void {
 
     // Root module exposes submodules to clients referencing "zamgba"
     m.addImport("zamgba-hal", hal_module);
-    m.addImport("zamgba-gfx2d", gfx2d_module);
+    m.addImport("zamgba-sys", sys_module);
+    m.addImport("zamgba-engine", engine_module);
 
     // Step 2: Create demo executables
     var first = arm.addROM(b, .{
         .optimize = optimize,
-        .name = "first",
-        .root_source_file = b.path(FirstDemoRoot),
+        .name = "mode3_lines",
+        .root_source_file = b.path("demo/hal/mode3_lines.zig"),
     });
 
     first.root_module.addImport(LibName, m);
+
+    var second = arm.addROM(b, .{
+        .optimize = optimize,
+        .name = "sprite_hal",
+        .root_source_file = b.path("demo/hal/sprite_hal.zig"),
+    });
+
+    second.root_module.addImport(LibName, m);
+
+    var third = arm.addROM(b, .{
+        .optimize = optimize,
+        .name = "sprite_engine",
+        .root_source_file = b.path("demo/engine/sprite_engine.zig"),
+    });
+
+    third.root_module.addImport(LibName, m);
+
+    var fourth = arm.addROM(b, .{
+        .optimize = optimize,
+        .name = "sprite_instanced",
+        .root_source_file = b.path("demo/engine/sprite_instanced.zig"),
+    });
+
+    fourth.root_module.addImport(LibName, m);
 
     // Unit tests are compiled and executed in host machine. Some
     // GBA-specific code, e.g., manipulation of registers, will not be
@@ -65,7 +99,8 @@ pub fn build(b: *std.Build) void {
 
     // Add submodules to unit tests so we can test them on desktop
     lib_unit_tests.root_module.addImport("zamgba-hal", hal_module);
-    lib_unit_tests.root_module.addImport("zamgba-gfx2d", gfx2d_module);
+    lib_unit_tests.root_module.addImport("zamgba-sys", sys_module);
+    lib_unit_tests.root_module.addImport("zamgba-engine", engine_module);
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     const test_step = b.step("test", "Run unit tests");

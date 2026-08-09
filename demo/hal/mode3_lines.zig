@@ -1,6 +1,7 @@
 const gba = @import("zamgba");
 const hal = gba.hal;
-const gfx2d = gba.gfx2d;
+const sys = gba.sys;
+const gfx2d = gba.engine.gfx2d;
 
 // The gameHeader is required at the beginning of GBA rom
 // with correct game name, game code, maker code and version.
@@ -33,7 +34,7 @@ export fn main() noreturn {
     var display = hal.Display.init();
     display.setMode3().setBackground2().writeRegister();
 
-    var ctx = hal.context.Mode3Context.init();
+    var ctx = sys.context.Mode3Context.init();
 
     gfx2d.drawLine(gfx2d.Point2.init(10, 10), gfx2d.Point2.init(230, 150), 0x001F, &ctx);
     gfx2d.drawLine(gfx2d.Point2.init(230, 10), gfx2d.Point2.init(10, 150), 0x03E0, &ctx);

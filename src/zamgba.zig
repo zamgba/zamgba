@@ -1,2 +1,3 @@
 pub const hal = @import("zamgba-hal");
-pub const gfx2d = @import("zamgba-gfx2d");
+pub const sys = @import("zamgba-sys");
+pub const engine = @import("zamgba-engine");

@@ -64,24 +64,23 @@ documentation and make it official.
 Well, if you are also interested programming GBA in Zig, follow the
 steps below:
 
-1. Install Zig in master branch. The codebase is compiled with
-   version ``0.12.0-dev.2547+eb4024036`` (2024-02-04). Some package
-   managers like [scoop](https://scoop.sh) or
-   [AUR](https://aur.archlinux.org) allows installing dev version
-   of Zig toolchain. If you prefer building it from source (LLVM+Zig),
-   refer to [here](https://github.com/ziglang/zig/wiki/Building-Zig-From-Source).
+1. Install Zig. The codebase is compiled with Zig version **0.16.0** or later.
 2. Clone [Zamgba](https://github.com/fuzhouch/zamgba) source code.
-3. Build with command, ``zig build``. You will be able to get
-   demo roms from ``zig-out/bin/first.gba``. There's another binary,
-   ``zig-out/bin/first``, which is the ELF format of GBA executable
-   code. Unfortunately the binary is not executable (haven't figured
-   out the reason), but it contains symbols and linker section info,
-   which is useful for debugging.
-4. Run the ROM. I use [mgba](https://mgba.io) command line under Linux.
-   With a command ``mgba ./zig-out/bin/first.gba`` to run. You will be
-   able to see three pixels (red, green and blue) on screen.
-5. For debugging, use ``mgba -d ./zig-out/bin/first.gba``. It's a
-   powerful assembly debugging tool to solve a lot of problems.
+3. Build with command: `zig build`. You will get the compiled demo ROM binaries inside `zig-out/bin/` (e.g., `zig-out/bin/sprite_engine.gba`).
+4. Run any ROM using an emulator. For example: `mgba ./zig-out/bin/sprite_engine.gba`.
+5. For debugging, use `mgba -d ./zig-out/bin/sprite_engine.gba`. It's a powerful assembly debugging tool to solve a lot of problems.
+
+## Built-In Demo ROMs
+
+Zamgba includes several interactive and instructional demo ROMs categorised by abstraction layers:
+
+### 1. Hardware Abstraction Layer (HAL) Demos
+*   **`mode3_lines`** (`demo/hal/mode3_lines.zig`): Demonstrates basic Mode 3 bitmap graphics. Renders three intersecting colored lines on a bitmap background using low-level, context-agnostic line-drawing algorithms.
+*   **`sprite_hal`** (`demo/hal/sprite_hal.zig`): Demonstrates direct, register-level sprite setup on the GBA. Manually populates palette memory (PALRAM) and sprite tile memory (VRAM), configures packed `ObjAttr` coordinates, and bounces a single white 8x8 block smoothly left-to-right inside a VBlank-synchronized loop.
+
+### 2. High-Level Engine Demos
+*   **`sprite_engine`** (`demo/engine/sprite_engine.zig`): Showcases our high-level **Static Namespace / File** engine loop. State is declared cleanly as file-scope `var` variables, and the loop is started via `eng.run(@This())`. The engine automatically manages VBlank timing, OAM hardware uploads, and dynamic slot allocation.
+*   **`sprite_instanced`** (`demo/engine/sprite_instanced.zig`): Showcases our high-level **Pointer-to-Instance** engine loop. Encapsulates the entire game state inside a type-safe structure (`const Game = struct { ... }`) and passes an instance pointer `eng.run(&game)`. This is the recommended structure for larger, multi-sprite/multi-level modular games requiring state serialization (SRAM/Flash cartridge saving).
 
 ### Can I reference your library as a dependency?
 
@@ -108,3 +107,29 @@ a GBA rom:
 
 
 Enjoy!
+
+## Milestones
+
+* **Version 0.1.0**: Capable of writing a classic pong game. Supported features:
+  - Respond to gamepad input
+  - Single color/square sprites
+  - Hardcoded collision detection 
+* **Version 0.2.0**: Capable of writing a game with rich sprites graphics. Supported features:
+  - Mode 0 support
+  - PNG-sprite-to-code conversion tool
+  - Color palettes conversion tool
+* **Version 0.3.0**: Capable of writing a game with rich sprites and scrolling background. Supported features:
+  - Camera
+  - True color background, via mode 3, 4, 5
+* **Version 0.4.0**: Capable of writing a game with chiptune music. Supported features:
+  - Chiptune-to-code conversion tool
+  - Support chiptune playing music
+* **Version 0.5.0**: Capable of writing a game with save data. Supported features:
+  - Save state read/write API
+* **Version 0.6.0**: Capable of playing Direct Audio. Supported features:
+  - Wav file to code conversion tool
+  - Direct Audio playback API
+* **Version 0.7.0**: Capable of writing a game with 2D physics. Supported features:
+  - 2D collision & detection API
+* **Version 1.0.0**: Capable of writing a 2D platformer game.
+* **Version 2.0.0**: Capable of writing a pseudo-3D game.
