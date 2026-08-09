@@ -33,17 +33,26 @@ export fn main() noreturn {
     // 5. Create a High-Level Sprite (Tier 3 Engine API)
     // We instantiate a Sprite struct at (116, 76), with size 8x8.
     var spr = engine.Sprite.init(116, 76, 8, 8);
-    spr.tile_index = 0;     // Point to the first tile we filled in VRAM
-    spr.palette_bank = 0;   // Use the first palette bank (which has white at index 1)
+    spr.tile_index = 0; // Point to the first tile we filled in VRAM
+    spr.palette_bank = 0; // Use the first palette bank (which has white at index 1)
 
-    // 6. Translate & Stage
-    // We use the Sprite's toOamAttr() method to compile the engine-level properties
-    // down to the hardware ObjAttr representation, and place it in shadow slot 0.
-    oam.shadow[0] = spr.toOamAttr();
+    var dx: i32 = 1;
 
-    // 7. Flush to Hardware
-    oam.copyToHardware();
+    // 6. Game Loop
+    while (true) {
+        // Move the high-level sprite's position
+        spr.x += dx;
+        if (spr.x > 240 - 8 or spr.x < 0) {
+            dx = -dx;
+        }
 
-    // 8. Game Loop
-    while (true) {}
+        // Translate the updated high-level properties down to the shadow slot
+        oam.shadow[0] = spr.toOamAttr();
+
+        // Wait for VBlank to start to prevent tearing on screen
+        hal.waitForVBlank();
+
+        // Flush shadow memory to GBA hardware
+        oam.copyToHardware();
+    }
 }

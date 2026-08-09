@@ -74,6 +74,13 @@ pub fn getPage() u8 {
     return 1;
 }
 
+pub fn waitForVBlank() void {
+    // Wait until the next frame starts (active rendering area)
+    while (REG_VCOUNT.* >= 160) {}
+    // Wait until VBlank starts (scanline >= 160)
+    while (REG_VCOUNT.* < 160) {}
+}
+
 pub fn flipPage() void {
     (REG_DISPCNT.*) ^= 0x0010;
 }

@@ -39,20 +39,29 @@ export fn main() noreturn {
     var oam = sys.oam.OamManager{};
     oam.init();
 
-    // Place the white sprite at the center of the screen.
-    // Screen is 240x160. Sprite is 8x8.
-    // Center X: (240 - 8) / 2 = 116
-    // Center Y: (160 - 8) / 2 = 76
-    oam.shadow[0] = .{
-        .attr0 = 76, // Y coordinate = 76, 4bpp, Square shape
-        .attr1 = 116, // X coordinate = 116, 8x8 size
-        .attr2 = 0, // Tile index 0, Palette bank 0
-        .fill = 0,
-    };
-
-    // Copy the shadow to hardware OAM to make it visible
-    oam.copyToHardware();
+    var x: i32 = 116;
+    var dx: i32 = 1;
 
     // 5. Game Loop
-    while (true) {}
+    while (true) {
+        // Move the sprite horizontally
+        x += dx;
+        if (x > 240 - 8 or x < 0) {
+            dx = -dx;
+        }
+
+        // Place the white sprite at the moving X coordinate, fixed Y coordinate
+        oam.shadow[0] = .{
+            .attr0 = 76, // Y coordinate = 76, 4bpp, Square shape
+            .attr1 = @as(u16, @intCast(x)) & 0x01FF, // X coordinate = x, 8x8 size
+            .attr2 = 0, // Tile index 0, Palette bank 0
+            .fill = 0,
+        };
+
+        // Wait for VBlank before copying to hardware to avoid tearing
+        hal.waitForVBlank();
+
+        // Copy the shadow to hardware OAM to make changes visible
+        oam.copyToHardware();
+    }
 }
