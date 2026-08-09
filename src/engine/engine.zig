@@ -38,4 +38,38 @@ pub const Engine = struct {
         self.oam.shadow[self.sprite_count] = spr.toOamAttr();
         self.sprite_count += 1;
     }
+
+    /// Starts the game loop. Automatically detects if you are passing:
+    /// 1. A static namespace/type (e.g., `@This()` representing a Zig file-struct).
+    /// 2. An instantiated struct pointer (e.g., `&game` containing state fields).
+    /// Enforces at compile-time that a public `tick` function/method is defined.
+    pub fn run(self: *Engine, context: anytype) noreturn {
+        const T = @TypeOf(context);
+        if (T == type) {
+            // Static namespace/file context
+            const has_tick = @hasDecl(context, "tick");
+            if (!has_tick) {
+                @compileError("Context type must define a public 'tick(eng: *Engine) void' function.");
+            }
+            while (true) {
+                context.tick(self);
+                self.nextFrame();
+            }
+        } else {
+            // Instantiated object context
+            const PtrInfo = @typeInfo(T);
+            if (PtrInfo != .pointer) {
+                @compileError("Engine.run must be passed a pointer for struct instances (e.g., &game).");
+            }
+            const ChildType = PtrInfo.pointer.child;
+            const has_tick = @hasDecl(ChildType, "tick");
+            if (!has_tick) {
+                @compileError("Instance type must define a public 'tick(eng: *Engine) void' method.");
+            }
+            while (true) {
+                context.tick(self);
+                self.nextFrame();
+            }
+        }
+    }
 };
