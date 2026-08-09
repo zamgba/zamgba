@@ -4,7 +4,6 @@ const std = @import("std");
 // script.
 pub const arm = @import("./src/build/arm.zig");
 
-
 const LibName = "zamgba";
 
 // ====================================================================
@@ -74,6 +73,14 @@ pub fn build(b: *std.Build) void {
     });
 
     second.root_module.addImport(LibName, m);
+
+    var third = arm.addROM(b, .{
+        .optimize = optimize,
+        .name = "sprite_engine",
+        .root_source_file = b.path("demo/engine/sprite.zig"),
+    });
+
+    third.root_module.addImport(LibName, m);
 
     // Unit tests are compiled and executed in host machine. Some
     // GBA-specific code, e.g., manipulation of registers, will not be

@@ -1,1 +1,1 @@
-pub const sprite = @import("sprite.zig");
+pub const Sprite = @import("sprite.zig").Sprite;
