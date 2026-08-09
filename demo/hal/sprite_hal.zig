@@ -46,7 +46,7 @@ export fn main() noreturn {
     while (true) {
         // Move the sprite horizontally
         x += dx;
-        if (x > 240 - 8 or x < 0) {
+        if (x >= 240 - 8 or x <= 0) {
             dx = -dx;
         }
 
