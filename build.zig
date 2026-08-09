@@ -69,8 +69,8 @@ pub fn build(b: *std.Build) void {
 
     var second = arm.addROM(b, .{
         .optimize = optimize,
-        .name = "second",
-        .root_source_file = b.path("demo/second.zig"),
+        .name = "sprite_hal",
+        .root_source_file = b.path("demo/sprite_hal.zig"),
     });
 
     second.root_module.addImport(LibName, m);
