@@ -68,8 +68,8 @@ pub fn build(b: *std.Build) void {
 
     var second = arm.addROM(b, .{
         .optimize = optimize,
-        .name = "sprite",
-        .root_source_file = b.path("demo/hal/sprite.zig"),
+        .name = "sprite_hal",
+        .root_source_file = b.path("demo/hal/sprite_hal.zig"),
     });
 
     second.root_module.addImport(LibName, m);
@@ -77,7 +77,7 @@ pub fn build(b: *std.Build) void {
     var third = arm.addROM(b, .{
         .optimize = optimize,
         .name = "sprite_engine",
-        .root_source_file = b.path("demo/engine/sprite.zig"),
+        .root_source_file = b.path("demo/engine/sprite_engine.zig"),
     });
 
     third.root_module.addImport(LibName, m);
