@@ -75,17 +75,16 @@ pub fn getPage() u8 {
 }
 
 pub fn waitForVBlank() void {
-    const REG_IE = @as(*volatile u16, @ptrFromInt(0x04000200));
-    const REG_IME = @as(*volatile u16, @ptrFromInt(0x04000208));
+    const MemorySections = @import("hal.zig").MemorySections;
 
     // Enable VBlank interrupt in DISPSTAT
     (REG_DISPSTAT.*) |= 0x0008;
 
     // Enable VBlank interrupt in IE
-    REG_IE.* |= 0x0001;
+    MemorySections.REG_IE.* |= 0x0001;
 
     // Enable Master Interrupt
-    REG_IME.* = 1;
+    MemorySections.REG_IME.* = 1;
 
     asm volatile ("swi 0x05" ::: .{
             .r0 = true,
