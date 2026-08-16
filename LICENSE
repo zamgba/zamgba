@@ -19,3 +19,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+### Third-Party Licenses and Attributions
+
+Portions of this software (specifically the linker script in `src/hal/gba.ld`) are derived from or inspired by the following open-source projects, used under their respective licenses:
+
+* **ZigGBA** (Copyright (c) 2019-2020 Wendigo Jaeger), licensed under the MIT License:
+  https://github.com/wendigojaeger/ZigGBA
