@@ -1,5 +1,9 @@
 # Introduction
 
+> [!IMPORTANT]
+> **Disclaimer:** Zamgba is an unofficial homebrew development tool. It is not affiliated with, authorized, sponsored, or endorsed by Nintendo Co., Ltd. "Game Boy", "GBA", and "Game Boy Advance" are registered trademarks of Nintendo.
+
+
 [Zamgba](https://github.com/fuzhouch/zamgba) is a project to learn
 how to program for [Game Boy Advance](https://en.wikipedia.org/wiki/Game_Boy_Advance).
 My goal is to use Game Boy Advance as a target platform to
