@@ -75,10 +75,24 @@ pub fn getPage() u8 {
 }
 
 pub fn waitForVBlank() void {
-    // Wait until the next frame starts (active rendering area)
-    while (REG_VCOUNT.* >= 160) {}
-    // Wait until VBlank starts (scanline >= 160)
-    while (REG_VCOUNT.* < 160) {}
+    const MemorySections = @import("hal.zig").MemorySections;
+
+    // Enable VBlank interrupt in DISPSTAT
+    (REG_DISPSTAT.*) |= 0x0008;
+
+    // Enable VBlank interrupt in IE
+    MemorySections.REG_IE.* |= 0x0001;
+
+    // Enable Master Interrupt
+    MemorySections.REG_IME.* = 1;
+
+    asm volatile ("swi 0x05" ::: .{
+            .r0 = true,
+            .r1 = true,
+            .r2 = true,
+            .r3 = true,
+            .memory = true,
+        });
 }
 
 pub fn flipPage() void {

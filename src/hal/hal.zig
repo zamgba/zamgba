@@ -40,6 +40,9 @@ pub const MemorySections = struct {
     pub const EWRAM = @as([*]u16, @ptrFromInt(0x02000000));
     pub const IWRAM = @as([*]u32, @ptrFromInt(0x03000000));
     pub const IORAM = @as([*]volatile u16, @ptrFromInt(0x04000000));
+    pub const REG_IE = @as(*volatile u16, @ptrFromInt(0x04000200));
+    pub const REG_IF = @as(*volatile u16, @ptrFromInt(0x04000202));
+    pub const REG_IME = @as(*volatile u16, @ptrFromInt(0x04000208));
     pub const PALRAM = @as([*]volatile u16, @ptrFromInt(0x05000000));
     pub const VRAM = @as([*]volatile u16, @ptrFromInt(0x06000000));
     pub const OAM = @as([*]volatile u32, @ptrFromInt(0x07000000));
@@ -55,6 +58,11 @@ pub const MemorySections = struct {
     pub const OARAM_SIZE_BYTES = 1024;
     pub const PAKROM_SIZE_BYTES = 32 * 1024 * 1024;
     pub const CARTROM_SIZE_BYTES = 64 * 1024;
+
+    // BIOS interrupt flag for SWI IntrWait
+    pub const BIOS_IF = @as(*volatile u16, @ptrFromInt(0x03007FF8));
+    // Pointer to the user-defined interrupt handler function
+    pub const USER_IRQ_HANDLER = @as(*volatile ?*const fn () callconv(.naked) void, @ptrFromInt(0x03007FFC));
 };
 
 pub const Screen = struct {
@@ -156,7 +164,6 @@ pub fn setupROMHeader(
     return h;
 }
 
-
 fn zeroBss() void {
     // Clear memory of .bss section
     // (between _sbss and _ebss), filling them to all 0.
@@ -166,7 +173,6 @@ fn zeroBss() void {
         dst[0] = 0;
     }
 }
-
 
 fn copyDataToEWRAM() void {
     // Copy .data section to EWRAM
@@ -222,8 +228,47 @@ export fn _boot() linksection(".gba.boot") void {
     // function. See callUserMain() for details.
     zeroBss();
     copyDataToEWRAM();
+
+    // Set up default IRQ handler for BIOS IntrWait functions (e.g. SWI 0x05)
+    MemorySections.USER_IRQ_HANDLER.* = irqHandler;
+
     callUserMain();
     while (true) {}
+}
+
+export fn irqHandler() callconv(.naked) void {
+    // The GBA BIOS jumps to the user IRQ handler in ARM state.
+    // If we compile this as normal Zig code, it will be Thumb code,
+    // which causes the CPU to interpret Thumb instructions as ARM,
+    // leading to a crash. Thus we must use a naked function with
+    // inline ARM assembly.
+    asm volatile (
+        \\.arm
+        \\.cpu arm7tdmi
+        \\
+        \\@ r0 = REG_BASE
+        \\mov r0, #0x04000000
+        \\
+        \\@ r1 = BIOS_IF pointer
+        \\ldr r1, =0x03007FF8
+        \\
+        \\@ Read REG_IF (0x04000202)
+        \\add r0, r0, #0x200
+        \\ldrh r2, [r0, #2]
+        \\
+        \\@ Acknowledge REG_IF hardware interrupts
+        \\strh r2, [r0, #2]
+        \\
+        \\@ Read BIOS_IF
+        \\ldrh r3, [r1]
+        \\
+        \\@ Acknowledge BIOS IntrWait interrupts
+        \\orr r3, r3, r2
+        \\strh r3, [r1]
+        \\
+        \\@ Return to BIOS IRQ dispatcher
+        \\bx lr
+    );
 }
 
 export fn _start() linksection(".gba.start") callconv(.naked) void {
