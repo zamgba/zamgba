@@ -14,8 +14,7 @@ The Zamgba SDK provides high-level APIs for 2D games on the Game Boy Advance. It
 
 2. **Architecture Layers (New)**
    - **Tier 1 (HAL):** `zamgba.hal` - Hardware limits, memory, registers.
-   - **Tier 2 (SYS):** `zamgba.sys` - OAM shadow, VRAM allocators, state tracking.
-   - **Tier 3 (ENGINE):** `zamgba.engine` - High-level entities (Sprite, Camera, TileMap).
+   - **Tier 2 (ENGINE):** `zamgba.engine` - High-level entities (Sprite, Camera, TileMap).
 
 3. **Input (v0.1.0)**
    - [ ] Respond to gamepad input

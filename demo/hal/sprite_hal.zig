@@ -1,6 +1,6 @@
 const gba = @import("zamgba");
 const hal = gba.hal;
-const sys = gba.sys;
+const oam = gba.hal.oam;
 const engine = gba.engine;
 
 // The standard ROM header for the GBA BIOS
@@ -35,9 +35,11 @@ export fn main() noreturn {
         obj_vram[i] = 0x1111; // Palette index 1 for all pixels
     }
 
-    // 4. Initialize OAM Manager
-    var oam = sys.oam.OamManager{};
-    oam.init();
+    // 4. Initialize Shadow OAM
+    var shadow: [128]oam.ObjAttr = undefined;
+    for (&shadow) |*obj| {
+        obj.* = .{ .attr0 = 160, .attr1 = 0, .attr2 = 0, .fill = 0 }; // push offscreen
+    }
 
     var x: i32 = 116;
     var dx: i32 = 1;
@@ -51,7 +53,7 @@ export fn main() noreturn {
         }
 
         // Place the white sprite at the moving X coordinate, fixed Y coordinate
-        oam.shadow[0] = .{
+        shadow[0] = .{
             .attr0 = 76, // Y coordinate = 76, 4bpp, Square shape
             .attr1 = @as(u16, @intCast(x)) & 0x01FF, // X coordinate = x, 8x8 size
             .attr2 = 0, // Tile index 0, Palette bank 0
@@ -62,6 +64,9 @@ export fn main() noreturn {
         hal.waitForVBlank();
 
         // Copy the shadow to hardware OAM to make changes visible
-        oam.copyToHardware();
+        const hw_oam = @as([*]volatile oam.ObjAttr, @ptrCast(@alignCast(hal.MemorySections.OAM)));
+        for (shadow, 0..) |obj, i| {
+            hw_oam[i] = obj;
+        }
     }
 }

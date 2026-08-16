@@ -23,18 +23,13 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/hal/hal.zig"),
     });
 
-    // Subsystems & Managers (Tier 2)
-    const sys_module = b.addModule("zamgba-sys", .{
-        .root_source_file = b.path("src/sys/sys.zig"),
-    });
-    sys_module.addImport("zamgba-hal", hal_module);
 
     // High-Level Framework (Tier 3)
     const engine_module = b.addModule("zamgba-engine", .{
         .root_source_file = b.path("src/engine/engine.zig"),
     });
     
-    engine_module.addImport("zamgba-sys", sys_module);
+    engine_module.addImport("zamgba-hal", hal_module);
 
     // 2D Drawing Algorithm module (platform-agnostic)
 
@@ -50,7 +45,6 @@ pub fn build(b: *std.Build) void {
 
     // Root module exposes submodules to clients referencing "zamgba"
     m.addImport("zamgba-hal", hal_module);
-    m.addImport("zamgba-sys", sys_module);
     m.addImport("zamgba-engine", engine_module);
 
     // Step 2: Create demo executables
@@ -99,7 +93,6 @@ pub fn build(b: *std.Build) void {
 
     // Add submodules to unit tests so we can test them on desktop
     lib_unit_tests.root_module.addImport("zamgba-hal", hal_module);
-    lib_unit_tests.root_module.addImport("zamgba-sys", sys_module);
     lib_unit_tests.root_module.addImport("zamgba-engine", engine_module);
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
