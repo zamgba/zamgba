@@ -142,21 +142,13 @@ pub fn setupROMHeader(
         }
 
         h.softwareVersion = softwareVersion;
-        // Compute checksum
-        // TODO: The code below is copied from ZigGBA but don't
-        // quite understand its semantics. Need to check again with GBATEK.
-        var complementCheck: u8 = 0;
-        var index: usize = 0xA0;
-        // TODO: Unlike ZigGBA, we add multiboot to header, so header
-        // size is adjusted from 192 to 228. Supposed
-        // the cast should be 192 bytes. Is it still correct?
-        const computeCheckData = @as([228]u8, @bitCast(h));
-        while (index < 0xA0 + (0xBD - 0xA0)) : (index += 1) {
-            complementCheck +%= computeCheckData[index];
+        // Clean-room ROM header checksum calculation based on GBATEK spec
+        var sum: u8 = 0;
+        const header_bytes = @as([228]u8, @bitCast(h));
+        for (header_bytes[0xA0..0xBD]) |byte| {
+            sum +%= byte;
         }
-
-        const tempCheck = -(0x19 + @as(i32, @intCast(complementCheck)));
-        h.complementCheck = @as(u8, @intCast(tempCheck & 0xFF));
+        h.complementCheck = @as(u8, @intCast((-(0x19 + @as(i32, sum))) & 0xFF));
     }
     return h;
 }
