@@ -59,7 +59,7 @@ pub const MemorySections = struct {
     // BIOS interrupt flag for SWI IntrWait
     pub const BIOS_IF = @as(*volatile u16, @ptrFromInt(0x03007FF8));
     // Pointer to the user-defined interrupt handler function
-    pub const USER_IRQ_HANDLER = @as(*volatile ?*const fn () callconv(.c) void, @ptrFromInt(0x03007FFC));
+    pub const USER_IRQ_HANDLER = @as(*volatile ?*const fn () callconv(.naked) void, @ptrFromInt(0x03007FFC));
 };
 
 pub const Screen = struct {
@@ -233,17 +233,39 @@ export fn _boot() linksection(".gba.boot") void {
     while (true) {}
 }
 
-export fn irqHandler() callconv(.c) void {
-    const REG_IF = @as(*volatile u16, @ptrFromInt(0x04000202));
-
-    // Read the pending hardware interrupts
-    const pending = REG_IF.*;
-
-    // Acknowledge hardware interrupts
-    REG_IF.* = pending;
-
-    // Acknowledge BIOS interrupts for IntrWait functions
-    MemorySections.BIOS_IF.* |= pending;
+export fn irqHandler() callconv(.naked) void {
+    // The GBA BIOS jumps to the user IRQ handler in ARM state.
+    // If we compile this as normal Zig code, it will be Thumb code,
+    // which causes the CPU to interpret Thumb instructions as ARM,
+    // leading to a crash. Thus we must use a naked function with
+    // inline ARM assembly.
+    asm volatile (
+        \\.arm
+        \\.cpu arm7tdmi
+        \\
+        \\@ r0 = REG_BASE
+        \\mov r0, #0x04000000
+        \\
+        \\@ r1 = BIOS_IF pointer
+        \\ldr r1, =0x03007FF8
+        \\
+        \\@ Read REG_IF (0x04000202)
+        \\add r0, r0, #0x200
+        \\ldrh r2, [r0, #2]
+        \\
+        \\@ Acknowledge REG_IF hardware interrupts
+        \\strh r2, [r0, #2]
+        \\
+        \\@ Read BIOS_IF
+        \\ldrh r3, [r1]
+        \\
+        \\@ Acknowledge BIOS IntrWait interrupts
+        \\orr r3, r3, r2
+        \\strh r3, [r1]
+        \\
+        \\@ Return to BIOS IRQ dispatcher
+        \\bx lr
+    );
 }
 
 export fn _start() linksection(".gba.start") callconv(.naked) void {
