@@ -55,6 +55,11 @@ pub const MemorySections = struct {
     pub const OARAM_SIZE_BYTES = 1024;
     pub const PAKROM_SIZE_BYTES = 32 * 1024 * 1024;
     pub const CARTROM_SIZE_BYTES = 64 * 1024;
+
+    // BIOS interrupt flag for SWI IntrWait
+    pub const BIOS_IF = @as(*volatile u16, @ptrFromInt(0x03007FF8));
+    // Pointer to the user-defined interrupt handler function
+    pub const USER_IRQ_HANDLER = @as(*volatile ?*const fn () callconv(.c) void, @ptrFromInt(0x03007FFC));
 };
 
 pub const Screen = struct {
@@ -156,7 +161,6 @@ pub fn setupROMHeader(
     return h;
 }
 
-
 fn zeroBss() void {
     // Clear memory of .bss section
     // (between _sbss and _ebss), filling them to all 0.
@@ -166,7 +170,6 @@ fn zeroBss() void {
         dst[0] = 0;
     }
 }
-
 
 fn copyDataToEWRAM() void {
     // Copy .data section to EWRAM
@@ -222,8 +225,25 @@ export fn _boot() linksection(".gba.boot") void {
     // function. See callUserMain() for details.
     zeroBss();
     copyDataToEWRAM();
+
+    // Set up default IRQ handler for BIOS IntrWait functions (e.g. SWI 0x05)
+    MemorySections.USER_IRQ_HANDLER.* = irqHandler;
+
     callUserMain();
     while (true) {}
+}
+
+export fn irqHandler() callconv(.c) void {
+    const REG_IF = @as(*volatile u16, @ptrFromInt(0x04000202));
+
+    // Read the pending hardware interrupts
+    const pending = REG_IF.*;
+
+    // Acknowledge hardware interrupts
+    REG_IF.* = pending;
+
+    // Acknowledge BIOS interrupts for IntrWait functions
+    MemorySections.BIOS_IF.* |= pending;
 }
 
 export fn _start() linksection(".gba.start") callconv(.naked) void {
