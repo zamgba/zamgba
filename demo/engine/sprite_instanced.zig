@@ -1,6 +1,5 @@
 const gba = @import("zamgba");
 const hal = gba.hal;
-const sys = gba.sys;
 const engine = gba.engine;
 
 // The standard ROM header for the GBA BIOS

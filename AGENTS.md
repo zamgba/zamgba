@@ -3,14 +3,14 @@
 This document provides essential context for AI agents working in the `zamgba` repository.
 
 ## Project Overview
-Zamgba is a self-learning project for Game Boy Advance (GBA) programming using the **Zig** programming language (targeting Zig version **0.16.0** or later). It contains a library SDK (`zamgba`), a Hardware Abstraction Layer (`zamgba-hal`), platform-agnostic 2D graphics helper routines (`zamgba-gfx2d`), and example demo ROMs.
+Zamgba is a self-learning project for Game Boy Advance (GBA) programming using the **Zig** programming language (targeting Zig version **0.16.0** or later). It contains a library SDK (`zamgba`), a Hardware Abstraction Layer (`zamgba-hal`), platform-agnostic 2D graphics helper routines (`zamgba-engine`), and example demo ROMs.
 
 ---
 
 ## Code Architecture & File Layout
 
 - **`build.zig` / `build.zig.zon`**: Build configuration. Defines target CPU (`arm7tdmi`), optimization modes, exposes `zamgba` module dependencies, and exports build helpers for consumers.
-- **`src/zamgba.zig`**: The main entry point module for client integration, exposing `hal` and `gfx2d`.
+- **`src/zamgba.zig`**: The main entry point module for client integration, exposing `hal` and `engine`.
 - **`src/build/arm.zig`**: Build scripts helper functions (`addROM`, `addStaticLibrary`) that set up the correct cross-compilation target query (`thumb`, `arm7tdmi`, `freestanding`) and post-compile step (`objcopy`) to generate `.gba` binary.
 - **`src/hal/`** (Hardware Abstraction Layer):
   - `hal.zig`: Core HAL file. Defines memory sections (VRAM, EWRAM, IWRAM, IORAM, etc.), screen dimensions (Mode 3, Mode 5), default color constants, boot logic (`_start`, `_boot`), and ROM header setup tools.
@@ -18,7 +18,7 @@ Zamgba is a self-learning project for Game Boy Advance (GBA) programming using t
   - `header.zig`: Structure definition and template for GBA ROM headers.
   - `display.zig`: Safe wrappers for GBA display controls (`REG_DISPCNT`, `REG_DISPSTAT`, `REG_VCOUNT`), register reading/writing, and page flipping.
   - `context.zig`: Hardware-backed bitmap drawing contexts (e.g., `Mode3Context`, `Mode5Context`) wrapping raw VRAM with bounds checks.
-- **`src/gfx2d/`** (2D Graphics Algorithms):
+- **`src/engine/gfx2d/`** (2D Graphics Algorithms):
   - `gfx2d.zig`: Exposes drawing helpers.
   - `line.zig` / `point.zig`: Implementation of generic drawing algorithms (e.g. Bresenham's line algorithm via `drawLine`) designed to be context-agnostic.
 - **`demo/first.zig`**: Entry point for the sample ROM demonstration using Mode 3 context to draw colored lines.

@@ -1,18 +1,25 @@
-const sys = @import("zamgba-sys");
+const hal = @import("zamgba-hal");
 
 pub const Sprite = @import("sprite.zig").Sprite;
 
 pub const Engine = struct {
-    oam: sys.oam.OamManager,
+    shadow_oam: [128]hal.oam.ObjAttr,
     sprite_count: usize,
 
     pub fn init() Engine {
-        var oam = sys.oam.OamManager{};
-        oam.init();
-        return .{
-            .oam = oam,
+        var eng = Engine{
+            .shadow_oam = undefined,
             .sprite_count = 0,
         };
+        for (&eng.shadow_oam) |*obj| {
+            obj.* = .{
+                .attr0 = 160, // Pushed offscreen
+                .attr1 = 0,
+                .attr2 = 0,
+                .fill = 0,
+            };
+        }
+        return eng;
     }
 
     /// Should be called at the end of the game loop to complete the frame.
@@ -21,10 +28,13 @@ pub const Engine = struct {
     /// 3. Resets the frame-level state (like sprite slot allocators) so the next frame starts fresh.
     pub fn nextFrame(self: *Engine) void {
         // Wait for VBlank
-        sys.video.VideoManager.waitForVBlank();
+        hal.waitForVBlank();
 
         // Flush shadow memory to hardware
-        self.oam.copyToHardware();
+        const hw_oam = @as([*]volatile hal.oam.ObjAttr, @ptrCast(@alignCast(hal.MemorySections.OAM)));
+        for (self.shadow_oam, 0..) |obj, i| {
+            hw_oam[i] = obj;
+        }
 
         // Reset the sprite count so the next frame draws from slot 0
         self.sprite_count = 0;
@@ -34,7 +44,7 @@ pub const Engine = struct {
     /// This dynamically maps the high-level sprite into the next available OAM slot.
     pub fn drawSprite(self: *Engine, spr: *const Sprite) void {
         if (self.sprite_count >= 128) return; // GBA hardware limit
-        self.oam.shadow[self.sprite_count] = spr.toOamAttr();
+        self.shadow_oam[self.sprite_count] = spr.toOamAttr();
         self.sprite_count += 1;
     }
 

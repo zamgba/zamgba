@@ -1,4 +1,4 @@
-const sys = @import("zamgba-sys");
+const hal = @import("zamgba-hal");
 
 /// A high-level representation of a Sprite.
 /// This structure holds engine-level data (x, y, scale, texture)
@@ -29,7 +29,7 @@ pub const Sprite = struct {
     }
     
     /// Compiles the engine-level sprite into a hardware OAM attribute.
-    pub fn toOamAttr(self: *const Sprite) sys.oam.ObjAttr {
+    pub fn toOamAttr(self: *const Sprite) hal.oam.ObjAttr {
         if (!self.visible) {
             return .{ .attr0 = 160, .attr1 = 0, .attr2 = 0, .fill = 0 };
         }
