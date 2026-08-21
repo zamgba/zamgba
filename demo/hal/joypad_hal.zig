@@ -36,6 +36,9 @@ export fn main() noreturn {
 
     var frame: u32 = 0;
 
+    // Draw initial debug pixel so we know execution reached here
+    vram[0] = hal.Color.MAG;
+
     // 3. Game Loop
     while (true) {
         frame +%= 1;
