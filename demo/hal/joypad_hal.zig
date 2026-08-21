@@ -34,27 +34,42 @@ export fn main() noreturn {
         vram[i] = hal.Color.BLACK;
     }
 
+    var frame: u32 = 0;
+
     // 3. Game Loop
     while (true) {
+        frame +%= 1;
+
         // Update input state at the start of the frame
         input.update();
 
+        // ---------------------------------------------------------
+        // DEBUG: Read hardware register directly as a fallback check
+        const raw_key = hal.MemorySections.REG_KEYINPUT.*;
+        const left_pressed = (raw_key & (1 << 5)) == 0 or input.isPressed(.Left);
+        const right_pressed = (raw_key & (1 << 4)) == 0 or input.isPressed(.Right);
+        const up_pressed = (raw_key & (1 << 6)) == 0 or input.isPressed(.Up);
+        const down_pressed = (raw_key & (1 << 7)) == 0 or input.isPressed(.Down);
+        const a_pressed = (raw_key & (1 << 0)) == 0 or input.isPressed(.A);
+        const b_pressed = (raw_key & (1 << 1)) == 0 or input.isPressed(.B);
+        // ---------------------------------------------------------
+
         // Move box based on D-pad input with boundary clamping
-        if (input.isPressed(.Left)) {
+        if (left_pressed) {
             box_x -= 2;
             if (box_x < 0) box_x = 0;
         }
-        if (input.isPressed(.Right)) {
+        if (right_pressed) {
             box_x += 2;
             if (box_x > hal.Screen.WIDTH_PIXELS - box_size) {
                 box_x = hal.Screen.WIDTH_PIXELS - box_size;
             }
         }
-        if (input.isPressed(.Up)) {
+        if (up_pressed) {
             box_y -= 2;
             if (box_y < 0) box_y = 0;
         }
-        if (input.isPressed(.Down)) {
+        if (down_pressed) {
             box_y += 2;
             if (box_y > hal.Screen.HEIGHT_PIXELS - box_size) {
                 box_y = hal.Screen.HEIGHT_PIXELS - box_size;
@@ -62,9 +77,9 @@ export fn main() noreturn {
         }
 
         // Determine box color (A -> Red, B -> Yellow, Default -> White)
-        const box_color: u16 = if (input.isPressed(.A))
+        const box_color: u16 = if (a_pressed)
             hal.Color.RED
-        else if (input.isPressed(.B))
+        else if (b_pressed)
             hal.Color.YELLOW
         else
             hal.Color.WHITE;
@@ -90,6 +105,9 @@ export fn main() noreturn {
                 vram[pixel_y * hal.Screen.WIDTH_PIXELS + pixel_x] = box_color;
             }
         }
+
+        // Debug indicator: draw a blinking pixel at top-left to ensure loop is running
+        vram[0] = if (frame % 60 < 30) hal.Color.MAG else hal.Color.CYAN;
 
         prev_x = box_x;
         prev_y = box_y;
