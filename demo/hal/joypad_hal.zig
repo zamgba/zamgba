@@ -12,9 +12,9 @@ export var gameHeader linksection(".gba.header") = hal.setupROMHeader(
 
 export fn main() noreturn {
     // 1. Initialize Display
-    // Set Mode 3 (Bitmap mode) to draw directly to VRAM.
+    // Set Mode 3 (Bitmap mode) and enable BG2 to draw directly to VRAM.
     var display = hal.Display.init();
-    display.setMode3().writeRegister();
+    display.setMode3().setBackground2().writeRegister();
 
     // 2. Initialize Input
     var input = engine.input.InputState{};
