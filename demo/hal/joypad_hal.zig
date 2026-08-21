@@ -116,6 +116,11 @@ export fn main() noreturn {
         prev_y = box_y;
 
         // Wait for VBlank
-        hal.waitForVBlank();
+        // Temporary workaround: active spin-wait instead of interrupt-based wait
+        // to bypass the BIOS interrupt freeze issue.
+        // hal.waitForVBlank();
+        const REG_VCOUNT = @as(*volatile u16, @ptrFromInt(0x04000006));
+        while (REG_VCOUNT.* >= 160) {}
+        while (REG_VCOUNT.* < 160) {}
     }
 }
