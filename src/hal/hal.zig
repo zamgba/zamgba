@@ -43,6 +43,8 @@ pub const MemorySections = struct {
     pub const REG_IE = @as(*volatile u16, @ptrFromInt(0x04000200));
     pub const REG_IF = @as(*volatile u16, @ptrFromInt(0x04000202));
     pub const REG_IME = @as(*volatile u16, @ptrFromInt(0x04000208));
+    pub const REG_KEYINPUT = @as(*volatile u16, @ptrFromInt(0x04000130));
+    pub const KEY_MASK = 0x03FF;
     pub const PALRAM = @as([*]volatile u16, @ptrFromInt(0x05000000));
     pub const VRAM = @as([*]volatile u16, @ptrFromInt(0x06000000));
     pub const OAM = @as([*]volatile u32, @ptrFromInt(0x07000000));
@@ -73,7 +75,8 @@ pub const Screen = struct {
     pub const MODE5_HEIGHT_PIXELS = 128;
 };
 
-pub const Display = @import("display.zig");
+pub const Display = @import("display.zig"); // Export as struct
+pub const joypad = @import("joypad.zig"); // Export as module
 pub const waitForVBlank = Display.waitForVBlank;
 
 pub const oam = @import("oam.zig");
