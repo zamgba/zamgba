@@ -34,58 +34,59 @@ export fn main() noreturn {
         vram[i] = hal.Color.BLACK;
     }
 
-    var frame: u32 = 0;
-
-    // Draw initial debug pixel so we know execution reached here
-    vram[0] = hal.Color.MAG;
-
     // 3. Game Loop
     while (true) {
-        frame +%= 1;
+        // ---------------------------------------------------------
+        // A. GAME LOGIC (Executed during Active Display Period)
+        // ---------------------------------------------------------
 
-        // Update input state at the start of the frame
+        // Update input state at the start of the logic frame
         input.update();
 
-        // ---------------------------------------------------------
-        // DEBUG: Read hardware register directly as a fallback check
-        const raw_key = hal.MemorySections.REG_KEYINPUT.*;
-        const left_pressed = (raw_key & (1 << 5)) == 0 or input.isPressed(.Left);
-        const right_pressed = (raw_key & (1 << 4)) == 0 or input.isPressed(.Right);
-        const up_pressed = (raw_key & (1 << 6)) == 0 or input.isPressed(.Up);
-        const down_pressed = (raw_key & (1 << 7)) == 0 or input.isPressed(.Down);
-        const a_pressed = (raw_key & (1 << 0)) == 0 or input.isPressed(.A);
-        const b_pressed = (raw_key & (1 << 1)) == 0 or input.isPressed(.B);
-        // ---------------------------------------------------------
+        var next_x = box_x;
+        var next_y = box_y;
 
         // Move box based on D-pad input with boundary clamping
-        if (left_pressed) {
-            box_x -= 2;
-            if (box_x < 0) box_x = 0;
+        if (input.isPressed(.Left)) {
+            next_x -= 2;
+            if (next_x < 0) next_x = 0;
         }
-        if (right_pressed) {
-            box_x += 2;
-            if (box_x > hal.Screen.WIDTH_PIXELS - box_size) {
-                box_x = hal.Screen.WIDTH_PIXELS - box_size;
+        if (input.isPressed(.Right)) {
+            next_x += 2;
+            if (next_x > hal.Screen.WIDTH_PIXELS - box_size) {
+                next_x = hal.Screen.WIDTH_PIXELS - box_size;
             }
         }
-        if (up_pressed) {
-            box_y -= 2;
-            if (box_y < 0) box_y = 0;
+        if (input.isPressed(.Up)) {
+            next_y -= 2;
+            if (next_y < 0) next_y = 0;
         }
-        if (down_pressed) {
-            box_y += 2;
-            if (box_y > hal.Screen.HEIGHT_PIXELS - box_size) {
-                box_y = hal.Screen.HEIGHT_PIXELS - box_size;
+        if (input.isPressed(.Down)) {
+            next_y += 2;
+            if (next_y > hal.Screen.HEIGHT_PIXELS - box_size) {
+                next_y = hal.Screen.HEIGHT_PIXELS - box_size;
             }
         }
 
         // Determine box color (A -> Red, B -> Yellow, Default -> White)
-        const box_color: u16 = if (a_pressed)
+        const box_color: u16 = if (input.isPressed(.A))
             hal.Color.RED
-        else if (b_pressed)
+        else if (input.isPressed(.B))
             hal.Color.YELLOW
         else
             hal.Color.WHITE;
+
+        // ---------------------------------------------------------
+        // B. WAIT FOR VBLANK
+        // ---------------------------------------------------------
+        // Halt the CPU until the screen finishes drawing.
+        hal.waitForVBlank();
+
+        // ---------------------------------------------------------
+        // C. RENDER (Executed during VBlank Period)
+        // ---------------------------------------------------------
+        // By drawing only AFTER waitForVBlank(), we guarantee that the
+        // LCD is not actively scanning these pixels, eliminating flicker.
 
         // Erase old box position
         var sy: i32 = 0;
@@ -98,29 +99,21 @@ export fn main() noreturn {
             }
         }
 
-        // Draw box at current position
+        // Draw box at new position
         sy = 0;
         while (sy < box_size) : (sy += 1) {
             var sx: i32 = 0;
             while (sx < box_size) : (sx += 1) {
-                const pixel_x = @as(usize, @intCast(box_x + sx));
-                const pixel_y = @as(usize, @intCast(box_y + sy));
+                const pixel_x = @as(usize, @intCast(next_x + sx));
+                const pixel_y = @as(usize, @intCast(next_y + sy));
                 vram[pixel_y * hal.Screen.WIDTH_PIXELS + pixel_x] = box_color;
             }
         }
 
-        // Debug indicator: draw a blinking pixel at top-left to ensure loop is running
-        vram[0] = if (frame % 60 < 30) hal.Color.MAG else hal.Color.CYAN;
-
+        // Save current position for erasing in the next frame
+        box_x = next_x;
+        box_y = next_y;
         prev_x = box_x;
         prev_y = box_y;
-
-        // Wait for VBlank
-        // Temporary workaround: active spin-wait instead of interrupt-based wait
-        // to bypass the BIOS interrupt freeze issue.
-        // hal.waitForVBlank();
-        const REG_VCOUNT = @as(*volatile u16, @ptrFromInt(0x04000006));
-        while (REG_VCOUNT.* >= 160) {}
-        while (REG_VCOUNT.* < 160) {}
     }
 }
