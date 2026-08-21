@@ -1,6 +1,4 @@
 const REG_DISPCNT = @as(*volatile u16, @ptrFromInt(0x04000000));
-const REG_DISPSTAT = @as(*volatile u16, @ptrFromInt(0x04000004));
-const REG_VCOUNT = @as(*volatile u16, @ptrFromInt(0x04000006));
 
 value: u16,
 
@@ -77,8 +75,11 @@ pub fn getPage() u8 {
 pub fn waitForVBlank() void {
     const MemorySections = @import("hal.zig").MemorySections;
 
+    // Acknowledge any pending VBlank interrupts in REG_IF before waiting
+    MemorySections.REG_IF.* = 0x0001;
+
     // Enable VBlank interrupt in DISPSTAT
-    (REG_DISPSTAT.*) |= 0x0008;
+    MemorySections.REG_DISPSTAT.* |= 0x0008;
 
     // Enable VBlank interrupt in IE
     MemorySections.REG_IE.* |= 0x0001;

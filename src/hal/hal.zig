@@ -40,6 +40,8 @@ pub const MemorySections = struct {
     pub const EWRAM = @as([*]u16, @ptrFromInt(0x02000000));
     pub const IWRAM = @as([*]u32, @ptrFromInt(0x03000000));
     pub const IORAM = @as([*]volatile u16, @ptrFromInt(0x04000000));
+    pub const REG_DISPSTAT = @as(*volatile u16, @ptrFromInt(0x04000004));
+    pub const REG_VCOUNT = @as(*volatile u16, @ptrFromInt(0x04000006));
     pub const REG_IE = @as(*volatile u16, @ptrFromInt(0x04000200));
     pub const REG_IF = @as(*volatile u16, @ptrFromInt(0x04000202));
     pub const REG_IME = @as(*volatile u16, @ptrFromInt(0x04000208));
@@ -75,8 +77,8 @@ pub const Screen = struct {
     pub const MODE5_HEIGHT_PIXELS = 128;
 };
 
-pub const Display = @import("display.zig"); // Export as struct
-pub const joypad = @import("joypad.zig"); // Export as module
+pub const Display = @import("display.zig");
+pub const joypad = @import("joypad.zig");
 pub const waitForVBlank = Display.waitForVBlank;
 
 pub const oam = @import("oam.zig");
