@@ -19,23 +19,55 @@ export fn main() noreturn {
     // 2. Initialize Input
     var input = engine.input.InputState{};
 
+    // Box properties
+    const box_size: i32 = 16;
+    var box_x: i32 = (hal.Screen.WIDTH_PIXELS - box_size) / 2;
+    var box_y: i32 = (hal.Screen.HEIGHT_PIXELS - box_size) / 2;
+
+    const vram = hal.MemorySections.VRAM;
+
     // 3. Game Loop
     while (true) {
         // Update input state at the start of the frame
         input.update();
 
-        // 4. Input Logic: Draw based on button press
-        // We use VRAM directly to clear and draw colors based on button state.
-        // Screen resolution is 240x160.
-        const vram = hal.MemorySections.VRAM;
+        // Move box based on D-pad input with boundary clamping
+        if (input.isPressed(.Left)) {
+            box_x -= 2;
+            if (box_x < 0) box_x = 0;
+        }
+        if (input.isPressed(.Right)) {
+            box_x += 2;
+            if (box_x > hal.Screen.WIDTH_PIXELS - box_size) {
+                box_x = hal.Screen.WIDTH_PIXELS - box_size;
+            }
+        }
+        if (input.isPressed(.Up)) {
+            box_y -= 2;
+            if (box_y < 0) box_y = 0;
+        }
+        if (input.isPressed(.Down)) {
+            box_y += 2;
+            if (box_y > hal.Screen.HEIGHT_PIXELS - box_size) {
+                box_y = hal.Screen.HEIGHT_PIXELS - box_size;
+            }
+        }
 
-        // Define a simple visual: if A is pressed, fill screen with White;
-        // if B is pressed, fill with Red; else fill with Black.
-        const color: u16 = if (input.isPressed(.A)) hal.Color.WHITE else if (input.isPressed(.B)) hal.Color.RED else hal.Color.BLACK;
-
+        // Clear screen to Black
         var i: usize = 0;
-        while (i < 240 * 160) : (i += 1) {
-            vram[i] = color;
+        while (i < hal.Screen.WIDTH_PIXELS * hal.Screen.HEIGHT_PIXELS) : (i += 1) {
+            vram[i] = hal.Color.BLACK;
+        }
+
+        // Draw white box at current position
+        var sy: i32 = 0;
+        while (sy < box_size) : (sy += 1) {
+            var sx: i32 = 0;
+            while (sx < box_size) : (sx += 1) {
+                const pixel_x = @as(usize, @intCast(box_x + sx));
+                const pixel_y = @as(usize, @intCast(box_y + sy));
+                vram[pixel_y * hal.Screen.WIDTH_PIXELS + pixel_x] = hal.Color.WHITE;
+            }
         }
 
         // Wait for VBlank
