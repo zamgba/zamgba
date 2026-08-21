@@ -76,13 +76,14 @@ export fn main() noreturn {
         else
             hal.Color.WHITE;
 
-        // Wait for VBlank
-        // Temporary workaround: active spin-wait instead of interrupt-based wait
-        // to bypass the BIOS interrupt freeze issue.
-        // hal.waitForVBlank();
-        const REG_VCOUNT = @as(*volatile u16, @ptrFromInt(0x04000006));
-        while (REG_VCOUNT.* >= 160) {}
-        while (REG_VCOUNT.* < 160) {}
+        // ---------------------------------------------------------
+        // B. WAIT FOR VBLANK
+        // ---------------------------------------------------------
+        // Halt the CPU until the screen finishes drawing.
+        hal.waitForVBlank();
+        // const REG_VCOUNT = @as(*volatile u16, @ptrFromInt(0x04000006));
+        // while (REG_VCOUNT.* >= 160) {}
+        // while (REG_VCOUNT.* < 160) {}
 
         // ---------------------------------------------------------
         // C. RENDER (Executed during VBlank Period)
