@@ -23,8 +23,16 @@ export fn main() noreturn {
     const box_size: i32 = 16;
     var box_x: i32 = (hal.Screen.WIDTH_PIXELS - box_size) / 2;
     var box_y: i32 = (hal.Screen.HEIGHT_PIXELS - box_size) / 2;
+    var prev_x: i32 = box_x;
+    var prev_y: i32 = box_y;
 
     const vram = hal.MemorySections.VRAM;
+
+    // Clear entire screen to Black once at startup
+    var i: usize = 0;
+    while (i < hal.Screen.WIDTH_PIXELS * hal.Screen.HEIGHT_PIXELS) : (i += 1) {
+        vram[i] = hal.Color.BLACK;
+    }
 
     // 3. Game Loop
     while (true) {
@@ -53,22 +61,38 @@ export fn main() noreturn {
             }
         }
 
-        // Clear screen to Black
-        var i: usize = 0;
-        while (i < hal.Screen.WIDTH_PIXELS * hal.Screen.HEIGHT_PIXELS) : (i += 1) {
-            vram[i] = hal.Color.BLACK;
+        // Determine box color (A -> Red, B -> Yellow, Default -> White)
+        const box_color: u16 = if (input.isPressed(.A))
+            hal.Color.RED
+        else if (input.isPressed(.B))
+            hal.Color.YELLOW
+        else
+            hal.Color.WHITE;
+
+        // Erase old box position
+        var sy: i32 = 0;
+        while (sy < box_size) : (sy += 1) {
+            var sx: i32 = 0;
+            while (sx < box_size) : (sx += 1) {
+                const pixel_x = @as(usize, @intCast(prev_x + sx));
+                const pixel_y = @as(usize, @intCast(prev_y + sy));
+                vram[pixel_y * hal.Screen.WIDTH_PIXELS + pixel_x] = hal.Color.BLACK;
+            }
         }
 
-        // Draw white box at current position
-        var sy: i32 = 0;
+        // Draw box at current position
+        sy = 0;
         while (sy < box_size) : (sy += 1) {
             var sx: i32 = 0;
             while (sx < box_size) : (sx += 1) {
                 const pixel_x = @as(usize, @intCast(box_x + sx));
                 const pixel_y = @as(usize, @intCast(box_y + sy));
-                vram[pixel_y * hal.Screen.WIDTH_PIXELS + pixel_x] = hal.Color.WHITE;
+                vram[pixel_y * hal.Screen.WIDTH_PIXELS + pixel_x] = box_color;
             }
         }
+
+        prev_x = box_x;
+        prev_y = box_y;
 
         // Wait for VBlank
         hal.waitForVBlank();
