@@ -1,7 +1,6 @@
 const MemorySections = @import("hal.zig").MemorySections;
 const REG_DISPCNT = MemorySections.REG_DISPCNT;
 const REG_DISPSTAT = MemorySections.REG_DISPSTAT;
-const REG_VCOUNT = MemorySections.REG_VCOUNT;
 const REG_IE = MemorySections.REG_IE;
 const REG_IF = MemorySections.REG_IF;
 const REG_IME = MemorySections.REG_IME;
@@ -79,10 +78,26 @@ pub fn getPage() u8 {
 }
 
 pub fn waitForVBlank() void {
-    // Wait until scanline is outside VBlank (active display area)
-    while (REG_VCOUNT.* >= 160) {}
-    // Wait until scanline enters VBlank (scanline >= 160)
-    while (REG_VCOUNT.* < 160) {}
+
+    // Acknowledge any pending VBlank interrupts in REG_IF before waiting
+    REG_IF.* = 0x0001;
+
+    // Enable VBlank interrupt in DISPSTAT
+    REG_DISPSTAT.* |= 0x0008;
+
+    // Enable VBlank interrupt in IE
+    REG_IE.* |= 0x0001;
+
+    // Enable Master Interrupt
+    REG_IME.* = 1;
+
+    asm volatile ("swi 0x05" ::: .{
+            .r0 = true,
+            .r1 = true,
+            .r2 = true,
+            .r3 = true,
+            .memory = true,
+        });
 }
 
 pub fn flipPage() void {
