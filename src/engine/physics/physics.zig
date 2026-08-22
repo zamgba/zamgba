@@ -8,6 +8,8 @@ pub const map = @import("map.zig");
 pub const MapSize = map.MapSize;
 pub const OutOfBoundsBehavior = map.OutOfBoundsBehavior;
 pub const CollisionMap = map.CollisionMap;
+pub const ContextTileSolidFn = map.ContextTileSolidFn;
+pub const NoContextTileSolidFn = map.NoContextTileSolidFn;
 pub const TileSolidFn = map.TileSolidFn;
 pub const SimpleTileSolidFn = map.SimpleTileSolidFn;
 

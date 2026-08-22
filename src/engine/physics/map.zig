@@ -38,31 +38,33 @@ pub const OutOfBoundsBehavior = enum {
     empty, // Out of bounds is walkable/empty
 };
 
-/// Callback signature for streaming tile solid states.
+/// Callback signature for streaming tile solid states with a context pointer.
 /// Return true if the tile is solid/blocked, false if passable.
-pub const TileSolidFn = *const fn (ctx: ?*const anyopaque, tx: u16, ty: u16) bool;
+pub const ContextTileSolidFn = *const fn (ctx: ?*const anyopaque, tx: u16, ty: u16) bool;
+pub const TileSolidFn = ContextTileSolidFn; // Alias for backward compatibility
 
-/// Simple callback signature without context pointer.
-pub const SimpleTileSolidFn = *const fn (tx: u16, ty: u16) bool;
+/// Callback signature for stateless tile solid checks without a context pointer.
+pub const NoContextTileSolidFn = *const fn (tx: u16, ty: u16) bool;
+pub const SimpleTileSolidFn = NoContextTileSolidFn; // Alias for backward compatibility
 
 /// Map collision detection supporting GBA Text Background sizes and streaming data access.
 pub const CollisionMap = struct {
     size: MapSize,
     context: ?*const anyopaque = null,
-    is_tile_solid_fn: TileSolidFn,
+    is_tile_solid_fn: ContextTileSolidFn,
     out_of_bounds: OutOfBoundsBehavior = .solid,
 
-    /// Internal wrapper adapter for simple function pointers without context.
-    fn simpleAdapter(ctx: ?*const anyopaque, tx: u16, ty: u16) bool {
-        const fn_ptr: SimpleTileSolidFn = @ptrCast(@alignCast(ctx.?));
+    /// Adapter for stateless function pointers without context.
+    fn noContextAdapter(ctx: ?*const anyopaque, tx: u16, ty: u16) bool {
+        const fn_ptr: NoContextTileSolidFn = @ptrCast(@alignCast(ctx.?));
         return fn_ptr(tx, ty);
     }
 
-    /// Initialize a CollisionMap with a contextual streaming callback.
-    pub fn initCustom(
+    /// Initialize a CollisionMap with an explicit context pointer (for stateful/instance data).
+    pub fn initWithContext(
         size: MapSize,
         context: ?*const anyopaque,
-        is_tile_solid_fn: TileSolidFn,
+        is_tile_solid_fn: ContextTileSolidFn,
         out_of_bounds: OutOfBoundsBehavior,
     ) CollisionMap {
         return .{
@@ -73,16 +75,16 @@ pub const CollisionMap = struct {
         };
     }
 
-    /// Initialize a CollisionMap with a stateless function pointer.
+    /// Initialize a CollisionMap with a stateless function pointer (no context).
     pub fn init(
         size: MapSize,
-        is_tile_solid_fn: SimpleTileSolidFn,
+        is_tile_solid_fn: NoContextTileSolidFn,
         out_of_bounds: OutOfBoundsBehavior,
     ) CollisionMap {
         return .{
             .size = size,
             .context = @ptrCast(is_tile_solid_fn),
-            .is_tile_solid_fn = simpleAdapter,
+            .is_tile_solid_fn = noContextAdapter,
             .out_of_bounds = out_of_bounds,
         };
     }
@@ -233,7 +235,7 @@ test "CollisionMap contextual streaming callback" {
     };
 
     var state = CustomState{ .wall_x = 5, .wall_y = 5 };
-    const map = CollisionMap.initCustom(.size_512x512, &state, CustomState.isSolid, .solid);
+    const map = CollisionMap.initWithContext(.size_512x512, &state, CustomState.isSolid, .solid);
 
     const box = AABB.fromInt(40, 40, 8, 8); // (40 / 8 = 5)
     try std.testing.expect(map.isColliding(box));
