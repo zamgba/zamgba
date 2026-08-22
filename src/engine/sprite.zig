@@ -88,8 +88,8 @@ pub const Sprite = struct {
             .size = hal.oam.Size.SIZE_0,
         };
 
-        const y_hw: u16 = @as(u16, @intCast(@as(u8, @bitCast(@as(i8, @truncate(self.y))))));
-        const x_hw: u16 = @as(u16, @intCast(@as(u9, @bitCast(@as(i9, @truncate(self.x))))));
+        const y_hw: u16 = @as(u16, @bitCast(@as(i16, @truncate(self.y)))) & 0x00FF;
+        const x_hw: u16 = @as(u16, @bitCast(@as(i16, @truncate(self.x)))) & 0x01FF;
 
         const attr0: u16 = y_hw | (shape_size.shape << 14);
         const attr1: u16 = x_hw | (shape_size.size << 14);
