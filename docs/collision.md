@@ -32,7 +32,8 @@ pub const AABB = struct {
     width: u16,  // Integer pixels
     height: u16, // Integer pixels
 
-    pub fn isIntersecting(self: AABB, other: AABB) bool { ... }
+    pub fn isColliding(self: AABB, other: AABB) bool { ... }
+    pub fn collidesWith(self: AABB, other: AABB) bool { ... }
 };
 ```
 
