@@ -1,0 +1,113 @@
+# 2D Collision Framework Design for GBA
+
+This document outlines the architecture, data structures, and development plan for a 2D Axis-Aligned Bounding Box (AABB) collision detection framework in `zamgba`, targeting GBA constraints.
+
+## 1. Core Data Structures
+
+### Fixed-Point Math (`Fixed24_8`)
+To avoid slow floating-point operations on the GBA's ARM7TDMI processor, positional data relies on a 24.8 fixed-point representation using `u32`.
+- **Bits 8-31**: Integer part (24 bits).
+- **Bits 0-7**: Fractional part (8 bits).
+
+```zig
+pub const Fixed24_8 = struct {
+    raw: u32,
+
+    pub fn fromInt(i: u32) Fixed24_8 { ... }
+    pub fn toInt(self: Fixed24_8) u32 { ... }
+    pub fn add(self: Fixed24_8, other: Fixed24_8) Fixed24_8 { ... }
+    pub fn sub(self: Fixed24_8, other: Fixed24_8) Fixed24_8 { ... }
+    pub fn mul(self: Fixed24_8, other: Fixed24_8) Fixed24_8 { ... }
+    // Division requires careful implementation to avoid performance hits
+};
+```
+
+### AABB Structure
+Defines the bounding box for sprites and entities using fixed-point coordinates.
+
+```zig
+pub const AABB = struct {
+    x: Fixed24_8,
+    y: Fixed24_8,
+    width: u16,  // Integer pixels
+    height: u16, // Integer pixels
+
+    pub fn isIntersecting(self: AABB, other: AABB) bool { ... }
+};
+```
+
+## 2. Map Collision (Text Background)
+
+GBA Text Backgrounds use 8x8 pixel tiles. The framework supports the four standard GBA Text BG sizes:
+- 256x256 (32x32 tiles)
+- 512x256 (64x32 tiles)
+- 256x512 (32x64 tiles)
+- 512x512 (64x64 tiles)
+
+### Streaming Map Interface
+Since map data can be large, the framework streams collision data via a callback or interface, converting world coordinates to tile coordinates.
+
+```zig
+pub const MapSize = enum {
+    Size256x256,
+    Size512x256,
+    Size256x512,
+    Size512x512,
+};
+
+pub const CollisionMap = struct {
+    size: MapSize,
+    /// Function pointer to fetch tile attribute at a specific tile coordinate (tx, ty)
+    /// Returns true if the tile is solid, false if walkable.
+    getTileSolidState: *const fn(tx: u16, ty: u16) bool,
+
+    /// Checks if a given AABB overlaps with any solid tiles
+    pub fn checkAABB(self: CollisionMap, box: AABB) bool { ... }
+};
+```
+
+**Algorithm**:
+1. Convert `box.x` and `box.y` from `Fixed24_8` to integer pixels.
+2. Divide by 8 (shift right by 3) to get the min/max tile coordinates (`tx_min`, `ty_min`, `tx_max`, `ty_max`).
+3. Iterate over the tiles within this grid range.
+4. Call `getTileSolidState` for each. If any return `true`, a collision occurred.
+
+## 3. Sprite Integration
+
+Sprites automatically map to AABB boxes. The physics world manages moving sprites and resolving their collisions against the map and other sprites.
+
+```zig
+pub const PhysicsSprite = struct {
+    aabb: AABB,
+    velocity_x: Fixed24_8,
+    velocity_y: Fixed24_8,
+    id: u16, // Hardware sprite ID index
+    
+    /// Updates position and checks against map bounds
+    pub fn update(self: *PhysicsSprite, map: CollisionMap) void { ... }
+};
+```
+
+## 4. Development Plan
+
+### Phase 1: Math and Base Physics (`src/engine/physics/math.zig`, `src/engine/physics/aabb.zig`)
+- Implement `Fixed24_8` data type.
+- Implement addition, subtraction, multiplication, and shifting operations.
+- Implement `AABB` struct and the boolean `isIntersecting` algorithm (simple min/max overlap checks).
+- **Unit Tests**: Test math logic on the host machine.
+
+### Phase 2: Map Collision System (`src/engine/physics/map.zig`)
+- Implement the `CollisionMap` structure.
+- Write the algorithm to convert AABB pixel boundaries to an 8x8 tile grid.
+- Implement grid iteration and collision resolution logic.
+- **Unit Tests**: Mock a `getTileSolidState` function and test boundary overlap detection.
+
+### Phase 3: Sprite Integration (`src/engine/physics/sprite.zig`)
+- Implement `PhysicsSprite` struct.
+- Bind `PhysicsSprite` AABBs to hardware sprite OAM (Object Attribute Memory) updates so visual representation automatically follows the physics box.
+
+### Phase 4: Demonstration (`demo/engine/collision.zig`)
+- Create a simple ROM using `zamgba-engine` and `zamgba-hal`.
+- Render a map (e.g., 256x256) with solid walls.
+- Render a controllable sprite.
+- Hook D-Pad input to `PhysicsSprite` velocity and demonstrate sliding/stopping against map walls.
