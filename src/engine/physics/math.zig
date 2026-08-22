@@ -13,6 +13,23 @@ pub const Fixed24_8 = struct {
         return .{ .raw = i << fraction_bits };
     }
 
+    /// Create a Fixed24_8 from a comptime-known float literal.
+    /// Evaluated purely at compile-time with zero runtime floating-point overhead.
+    pub fn fromFloat(comptime f: comptime_float) Fixed24_8 {
+        return .{ .raw = @as(u32, @intFromFloat(f * @as(comptime_float, scale))) };
+    }
+
+    /// Create a Fixed24_8 from an integer part and an 8-bit fraction (0-255).
+    pub fn fromParts(integer: u32, fraction: u8) Fixed24_8 {
+        return .{ .raw = (integer << fraction_bits) | fraction };
+    }
+
+    /// Create a Fixed24_8 from an integer and a fraction (numerator / denominator).
+    pub fn fromFraction(integer: u32, numerator: u32, denominator: u32) Fixed24_8 {
+        const frac = (numerator * scale) / denominator;
+        return .{ .raw = (integer << fraction_bits) + frac };
+    }
+
     /// Convert back to an integer (truncates the fractional part).
     pub fn toInt(self: Fixed24_8) u32 {
         return self.raw >> fraction_bits;
@@ -48,6 +65,29 @@ test "Fixed24_8 fromInt and toInt" {
     try std.testing.expectEqual(@as(u32, 5), a.toInt());
 }
 
+test "Fixed24_8 fromFloat" {
+    const a = Fixed24_8.fromFloat(3.5);
+    try std.testing.expectEqual(@as(u32, (3 << 8) + 128), a.raw);
+    try std.testing.expectEqual(@as(u32, 3), a.toInt());
+
+    const b = Fixed24_8.fromFloat(0.125); // 1/8 -> 32/256
+    try std.testing.expectEqual(@as(u32, 32), b.raw);
+}
+
+test "Fixed24_8 fromParts" {
+    const a = Fixed24_8.fromParts(3, 128);
+    try std.testing.expectEqual(@as(u32, (3 << 8) + 128), a.raw);
+    try std.testing.expectEqual(@as(u32, 3), a.toInt());
+}
+
+test "Fixed24_8 fromFraction" {
+    const a = Fixed24_8.fromFraction(3, 1, 2); // 3 + 1/2 -> 3.5
+    try std.testing.expectEqual(@as(u32, (3 << 8) + 128), a.raw);
+
+    const b = Fixed24_8.fromFraction(0, 1, 4); // 0 + 1/4 -> 64/256
+    try std.testing.expectEqual(@as(u32, 64), b.raw);
+}
+
 test "Fixed24_8 add" {
     const a = Fixed24_8.fromInt(5);
     const b = Fixed24_8.fromInt(3);
@@ -55,8 +95,8 @@ test "Fixed24_8 add" {
     try std.testing.expectEqual(@as(u32, 8), c.toInt());
     
     // Test with fractional parts
-    const x = Fixed24_8{ .raw = (2 << 8) + 128 }; // 2.5
-    const y = Fixed24_8{ .raw = (1 << 8) + 128 }; // 1.5
+    const x = Fixed24_8.fromFloat(2.5);
+    const y = Fixed24_8.fromFloat(1.5);
     const z = x.add(y);
     try std.testing.expectEqual(@as(u32, 4 << 8), z.raw); // 4.0
 }
@@ -75,7 +115,7 @@ test "Fixed24_8 mul" {
     try std.testing.expectEqual(@as(u32, 15), c.toInt());
 
     // 1.5 * 2 = 3
-    const x = Fixed24_8{ .raw = (1 << 8) + 128 }; // 1.5
+    const x = Fixed24_8.fromFloat(1.5);
     const y = Fixed24_8.fromInt(2);
     const z = x.mul(y);
     try std.testing.expectEqual(@as(u32, 3 << 8), z.raw);
@@ -91,5 +131,5 @@ test "Fixed24_8 div" {
     const x = Fixed24_8.fromInt(5);
     const y = Fixed24_8.fromInt(2);
     const z = x.div(y);
-    try std.testing.expectEqual(@as(u32, (2 << 8) + 128), z.raw);
+    try std.testing.expectEqual(Fixed24_8.fromFloat(2.5).raw, z.raw);
 }
