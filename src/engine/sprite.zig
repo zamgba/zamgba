@@ -103,8 +103,8 @@ pub const Sprite = struct {
         };
     }
 
-    /// Uploads solid color tile graphics to custom VRAM and PALRAM slices.
-    pub fn uploadSolidColorToSlices(
+    /// Fills custom VRAM and PALRAM memory buffers with solid color tile graphics and palette entry.
+    pub fn fillSolidColorToBuffers(
         self: *const Sprite,
         vram_obj_base: []volatile u16,
         palram_obj_base: []volatile u16,
@@ -129,16 +129,16 @@ pub const Sprite = struct {
         }
     }
 
-    /// Uploads solid color tile graphics to GBA OBJ VRAM and updates OBJ PALRAM for this sprite.
+    /// Fills GBA OBJ VRAM and updates OBJ PALRAM with solid color tile graphics for this sprite.
     /// `color` can be an `engine.Color` or a 15-bit BGR555 `u16` (e.g. `hal.Color.RED`).
-    pub fn uploadSolidColor(self: *const Sprite, color: anytype) SpriteError!void {
+    pub fn fillSolidColor(self: *const Sprite, color: anytype) SpriteError!void {
         const obj_pal = hal.MemorySections.PALRAM + 256;
         const obj_vram = hal.MemorySections.VRAM + 32768;
 
         const pal_slice = obj_pal[0..256];
         const vram_slice = obj_vram[0..16384];
 
-        try self.uploadSolidColorToSlices(vram_slice, pal_slice, color);
+        try self.fillSolidColorToBuffers(vram_slice, pal_slice, color);
     }
 };
 
@@ -198,7 +198,7 @@ test "toOamAttr encoding" {
     try std.testing.expectEqual(@as(u16, 0x2004), attr.attr2);
 }
 
-test "uploadSolidColorToSlices mock buffer" {
+test "fillSolidColorToBuffers mock buffer" {
     const std = @import("std");
 
     var mock_vram: [1024]u16 = [_]u16{0} ** 1024;
@@ -208,7 +208,7 @@ test "uploadSolidColorToSlices mock buffer" {
     spr.tile_index = 2;
     spr.palette_bank = 1;
 
-    try spr.uploadSolidColorToSlices(&mock_vram, &mock_palram, Color.RED);
+    try spr.fillSolidColorToBuffers(&mock_vram, &mock_palram, Color.RED);
 
     // Palette bank 1, color index 1 -> offset (1 * 16 + 1) = 17
     try std.testing.expectEqual(hal.Color.RED, mock_palram[17]);

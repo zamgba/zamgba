@@ -44,8 +44,8 @@ export fn main() noreturn {
     game.spr.tile_index = 0;
     game.spr.palette_bank = 0;
 
-    // 3. Upload solid white color tile graphics & palette to hardware
-    game.spr.uploadSolidColor(engine.Color.WHITE) catch {};
+    // 3. Fill solid white color tile graphics & palette to hardware VRAM/PALRAM
+    game.spr.fillSolidColor(engine.Color.WHITE) catch {};
 
     // 4. Initialize Engine Context
     var eng = engine.Engine.init();
