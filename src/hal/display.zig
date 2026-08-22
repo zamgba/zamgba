@@ -1,6 +1,9 @@
-const REG_DISPCNT = @as(*volatile u16, @ptrFromInt(0x04000000));
-const REG_DISPSTAT = @as(*volatile u16, @ptrFromInt(0x04000004));
-const REG_VCOUNT = @as(*volatile u16, @ptrFromInt(0x04000006));
+const MemorySections = @import("hal.zig").MemorySections;
+const REG_DISPCNT = MemorySections.REG_DISPCNT;
+const REG_DISPSTAT = MemorySections.REG_DISPSTAT;
+const REG_IE = MemorySections.REG_IE;
+const REG_IF = MemorySections.REG_IF;
+const REG_IME = MemorySections.REG_IME;
 
 value: u16,
 
@@ -75,16 +78,18 @@ pub fn getPage() u8 {
 }
 
 pub fn waitForVBlank() void {
-    const MemorySections = @import("hal.zig").MemorySections;
+
+    // Acknowledge any pending VBlank interrupts in REG_IF before waiting
+    REG_IF.* = 0x0001;
 
     // Enable VBlank interrupt in DISPSTAT
-    (REG_DISPSTAT.*) |= 0x0008;
+    REG_DISPSTAT.* |= 0x0008;
 
     // Enable VBlank interrupt in IE
-    MemorySections.REG_IE.* |= 0x0001;
+    REG_IE.* |= 0x0001;
 
     // Enable Master Interrupt
-    MemorySections.REG_IME.* = 1;
+    REG_IME.* = 1;
 
     asm volatile ("swi 0x05" ::: .{
             .r0 = true,

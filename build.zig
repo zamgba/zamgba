@@ -23,12 +23,11 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/hal/hal.zig"),
     });
 
-
     // High-Level Framework (Tier 3)
     const engine_module = b.addModule("zamgba-engine", .{
         .root_source_file = b.path("src/engine/engine.zig"),
     });
-    
+
     engine_module.addImport("zamgba-hal", hal_module);
 
     // 2D Drawing Algorithm module (platform-agnostic)
@@ -79,6 +78,14 @@ pub fn build(b: *std.Build) void {
     });
 
     fourth.root_module.addImport(LibName, m);
+
+    var fifth = arm.addROM(b, .{
+        .optimize = optimize,
+        .name = "joypad_hal",
+        .root_source_file = b.path("demo/hal/joypad_hal.zig"),
+    });
+
+    fifth.root_module.addImport(LibName, m);
 
     // Unit tests are compiled and executed in host machine. Some
     // GBA-specific code, e.g., manipulation of registers, will not be
