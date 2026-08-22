@@ -1,4 +1,5 @@
 comptime {
-    _ = @import("hal/display.zig");
-    _ = @import("engine/gfx2d/gfx2d.zig");
+    _ = @import("zamgba-hal").Display;
+    _ = @import("zamgba-engine").gfx2d;
+    _ = @import("zamgba-engine").input;
 }

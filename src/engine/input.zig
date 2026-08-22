@@ -8,11 +8,11 @@ pub const InputState = struct {
     // Track duration (in frames) for each key (10 buttons total).
     durations: [10]u16 = .{0} ** 10,
 
-    /// Updates the input state by reading the raw hardware input.
-    /// Should be called once per frame.
-    pub fn update(self: *InputState) void {
+    /// Updates the input state using an explicit raw button bitmask.
+    /// Useful for unit testing, replaying inputs, or custom input sources.
+    pub fn updateWithRaw(self: *InputState, raw: u16) void {
         self.previous_raw = self.current_raw;
-        self.current_raw = hal_joy.readRaw();
+        self.current_raw = raw;
 
         // Update press duration for each button
         var i: usize = 0;
@@ -28,6 +28,12 @@ pub const InputState = struct {
                 self.durations[i] = 0;
             }
         }
+    }
+
+    /// Updates the input state by reading the raw hardware input.
+    /// Should be called once per frame in GBA runtime.
+    pub fn update(self: *InputState) void {
+        self.updateWithRaw(hal_joy.readRaw());
     }
 
     /// Returns the number of frames the key has been held.
@@ -53,3 +59,71 @@ pub const InputState = struct {
         return (self.current_raw & mask == 0) and (self.previous_raw & mask != 0);
     }
 };
+
+// ===================================================================
+// Unit tests
+// ===================================================================
+
+test "InputState.PressedReleaseJustPressedJustReleased" {
+    const std = @import("std");
+    var input = InputState{};
+
+    // Initial state: no buttons pressed
+    try std.testing.expect(!input.isPressed(.A));
+    try std.testing.expect(!input.isJustPressed(.A));
+    try std.testing.expect(!input.isJustReleased(.A));
+
+    // Frame 1: Press button A
+    const raw_a = @intFromEnum(hal_joy.Key.A);
+    input.updateWithRaw(raw_a);
+
+    try std.testing.expect(input.isPressed(.A));
+    try std.testing.expect(input.isJustPressed(.A));
+    try std.testing.expect(!input.isJustReleased(.A));
+    try std.testing.expect(!input.isPressed(.B));
+
+    // Frame 2: Hold button A
+    input.updateWithRaw(raw_a);
+
+    try std.testing.expect(input.isPressed(.A));
+    try std.testing.expect(!input.isJustPressed(.A));
+    try std.testing.expect(!input.isJustReleased(.A));
+
+    // Frame 3: Release button A
+    input.updateWithRaw(0);
+
+    try std.testing.expect(!input.isPressed(.A));
+    try std.testing.expect(!input.isJustPressed(.A));
+    try std.testing.expect(input.isJustReleased(.A));
+
+    // Frame 4: Stay released
+    input.updateWithRaw(0);
+
+    try std.testing.expect(!input.isPressed(.A));
+    try std.testing.expect(!input.isJustPressed(.A));
+    try std.testing.expect(!input.isJustReleased(.A));
+}
+
+test "InputState.Durations" {
+    const std = @import("std");
+    var input = InputState{};
+
+    const raw_b = @intFromEnum(hal_joy.Key.B);
+
+    // Frame 1: Press B
+    input.updateWithRaw(raw_b);
+    try std.testing.expectEqual(@as(u16, 1), input.getDuration(.B));
+    try std.testing.expectEqual(@as(u16, 0), input.getDuration(.A));
+
+    // Frame 2: Hold B
+    input.updateWithRaw(raw_b);
+    try std.testing.expectEqual(@as(u16, 2), input.getDuration(.B));
+
+    // Frame 3: Hold B
+    input.updateWithRaw(raw_b);
+    try std.testing.expectEqual(@as(u16, 3), input.getDuration(.B));
+
+    // Frame 4: Release B
+    input.updateWithRaw(0);
+    try std.testing.expectEqual(@as(u16, 0), input.getDuration(.B));
+}
