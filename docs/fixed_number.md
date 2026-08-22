@@ -37,22 +37,57 @@ pub fn fromFloat(comptime f: comptime_float) Fixed24_8 {
 }
 ```
 
-1. **Zero Runtime Cost**:
-   ```zig
-   const speed = Fixed24_8.fromFloat(3.5);
-   ```
-   During compilation, `3.5 * 256.0 = 896.0` is computed directly by the compiler. The emitted machine code loads the immediate constant `0x380` (896) into a register in a single cycle:
-   ```armasm
-   mov r0, #896
-   ```
+#### Detailed Breakdown of `@as(u32, @intFromFloat(f * @as(comptime_float, scale)))`
+1. `scale` is defined as `1 << 8` (`256`).
+2. `@as(comptime_float, scale)` coerces the integer `256` into a compile-time float `256.0` to satisfy Zig's strict type-matching for floating-point arithmetic.
+3. `f * 256.0` scales the float value into fixed-point representation (e.g., `3.5 * 256.0 = 896.0`).
+4. `@intFromFloat(...)` converts the compile-time float `896.0` to an integer `896`.
+5. `@as(u32, ...)` coerces the compile-time integer literal `896` into a standard `u32` for storing in `.raw`.
+6. Because all inputs are `comptime`, LLVM folds this entire expression into a single immediate constant (e.g. `896` / `0x380`) during compilation, resulting in **zero** runtime instructions.
 
-2. **Compile-Time Safety Guarantee**:
-   Passing a dynamic runtime float variable will fail at compile time:
-   ```zig
-   var dynamic_val: f32 = getSpeed();
-   const speed = Fixed24_8.fromFloat(dynamic_val); // Compile Error!
-   ```
-   *Compiler output*: `error: value being passed to 'comptime' parameter is not known at compile-time`.
+---
+
+## 3. Fractional Representation and Calculation Rules
+
+In `Fixed24_8`, the low 8 bits represent fractional increments.
+An 8-bit unsigned integer ranges from `0` to `255`, dividing `1.0` into **256 discrete steps** ($\frac{1}{256} = 0.00390625$).
+
+$$\text{Fraction Counter (Low 8 Bits)} = \text{Decimal Part} \times 256$$
+
+### Why $128$ Represents $0.5$
+$$0.5 \times 256 = 128 \implies 3.5 = (3 \ll 8) + 128 = 896$$
+
+### Bit Weight Table (Powers of Two)
+Each bit in the 8-bit fraction field corresponds to a negative power of 2 ($2^{-n}$):
+
+| Bit Position | Fractional Weight | Decimal Weight | Raw Counter Value | Hex Value |
+| :--- | :--- | :--- | :--- | :--- |
+| **Bit 7 (MSB)** | $1/2$ | **0.5** | **128** | `0x80` |
+| **Bit 6** | $1/4$ | **0.25** | **64** | `0x40` |
+| **Bit 5** | $1/8$ | **0.125** | **32** | `0x20` |
+| **Bit 4** | $1/16$ | **0.0625** | **16** | `0x10` |
+| **Bit 3** | $1/32$ | **0.03125** | **8** | `0x08` |
+| **Bit 2** | $1/64$ | **0.015625** | **4** | `0x04` |
+| **Bit 1** | $1/128$ | **0.0078125** | **2** | `0x02` |
+| **Bit 0 (LSB)** | $1/256$ | **0.00390625** | **1** | `0x01` |
+
+### Common Values Quick Reference
+
+| Decimal | Fraction Formula | Calculation | Raw Byte (8-bit) |
+| :--- | :--- | :--- | :--- |
+| **0.5** | $1/2$ | $128$ | `128` (`0x80`) |
+| **0.25** | $1/4$ | $64$ | `64` (`0x40`) |
+| **0.75** | $3/4$ | $128 + 64$ | `192` (`0xC0`) |
+| **0.125** | $1/8$ | $32$ | `32` (`0x20`) |
+| **0.375** | $3/8$ | $64 + 32$ | `96` (`0x60`) |
+| **0.625** | $5/8$ | $128 + 32$ | `160` (`0xA0`) |
+| **0.875** | $7/8$ | $128 + 64 + 32$ | `224` (`0xE0`) |
+
+### Universal Formula for Any Decimal
+To convert an arbitrary decimal value $0.x$:
+$$\text{fraction} = \text{round}(0.x \times 256)$$
+- **Example for $0.1$**: $0.1 \times 256 = 25.6 \approx 26$ ($26 / 256 = 0.1015625$)
+- **Example for $0.33$**: $0.33 \times 256 = 84.48 \approx 84$ ($84 / 256 = 0.328125$)
 
 ---
 
