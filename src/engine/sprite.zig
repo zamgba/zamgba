@@ -6,26 +6,26 @@ pub const SpriteError = error{
 };
 
 pub const ShapeSize = struct {
-    shape: u2,
-    size: u2,
+    shape: u16,
+    size: u16,
 };
 
 /// Validates width and height against GBA hardware OBJ dimensions and returns Shape and Size bits.
 pub fn getShapeAndSize(width: u32, height: u32) SpriteError!ShapeSize {
-    if (width == 8 and height == 8) return .{ .shape = 0, .size = 0 };
-    if (width == 16 and height == 16) return .{ .shape = 0, .size = 1 };
-    if (width == 32 and height == 32) return .{ .shape = 0, .size = 2 };
-    if (width == 64 and height == 64) return .{ .shape = 0, .size = 3 };
+    if (width == 8 and height == 8) return .{ .shape = hal.oam.Shape.SQUARE, .size = hal.oam.Size.SIZE_0 };
+    if (width == 16 and height == 16) return .{ .shape = hal.oam.Shape.SQUARE, .size = hal.oam.Size.SIZE_1 };
+    if (width == 32 and height == 32) return .{ .shape = hal.oam.Shape.SQUARE, .size = hal.oam.Size.SIZE_2 };
+    if (width == 64 and height == 64) return .{ .shape = hal.oam.Shape.SQUARE, .size = hal.oam.Size.SIZE_3 };
 
-    if (width == 16 and height == 8) return .{ .shape = 1, .size = 0 };
-    if (width == 32 and height == 8) return .{ .shape = 1, .size = 1 };
-    if (width == 32 and height == 16) return .{ .shape = 1, .size = 2 };
-    if (width == 64 and height == 32) return .{ .shape = 1, .size = 3 };
+    if (width == 16 and height == 8) return .{ .shape = hal.oam.Shape.HORIZONTAL, .size = hal.oam.Size.SIZE_0 };
+    if (width == 32 and height == 8) return .{ .shape = hal.oam.Shape.HORIZONTAL, .size = hal.oam.Size.SIZE_1 };
+    if (width == 32 and height == 16) return .{ .shape = hal.oam.Shape.HORIZONTAL, .size = hal.oam.Size.SIZE_2 };
+    if (width == 64 and height == 32) return .{ .shape = hal.oam.Shape.HORIZONTAL, .size = hal.oam.Size.SIZE_3 };
 
-    if (width == 8 and height == 16) return .{ .shape = 2, .size = 0 };
-    if (width == 8 and height == 32) return .{ .shape = 2, .size = 1 };
-    if (width == 16 and height == 32) return .{ .shape = 2, .size = 2 };
-    if (width == 32 and height == 64) return .{ .shape = 2, .size = 3 };
+    if (width == 8 and height == 16) return .{ .shape = hal.oam.Shape.VERTICAL, .size = hal.oam.Size.SIZE_0 };
+    if (width == 8 and height == 32) return .{ .shape = hal.oam.Shape.VERTICAL, .size = hal.oam.Size.SIZE_1 };
+    if (width == 16 and height == 32) return .{ .shape = hal.oam.Shape.VERTICAL, .size = hal.oam.Size.SIZE_2 };
+    if (width == 32 and height == 64) return .{ .shape = hal.oam.Shape.VERTICAL, .size = hal.oam.Size.SIZE_3 };
 
     return SpriteError.InvalidDimensions;
 }
@@ -83,13 +83,13 @@ pub const Sprite = struct {
             return .{ .attr0 = 160, .attr1 = 0, .attr2 = 0, .fill = 0 };
         }
 
-        const shape_size = getShapeAndSize(self.width, self.height) catch ShapeSize{ .shape = 0, .size = 0 };
+        const shape_size = getShapeAndSize(self.width, self.height) catch ShapeSize{ .shape = hal.oam.Shape.SQUARE, .size = hal.oam.Size.SIZE_0 };
 
         const y_hw: u16 = @as(u16, @intCast(@as(u8, @bitCast(@as(i8, @truncate(self.y))))));
         const x_hw: u16 = @as(u16, @intCast(@as(u9, @bitCast(@as(i9, @truncate(self.x))))));
 
-        const attr0: u16 = y_hw | (@as(u16, shape_size.shape) << 14);
-        const attr1: u16 = x_hw | (@as(u16, shape_size.size) << 14);
+        const attr0: u16 = y_hw | (shape_size.shape << 14);
+        const attr1: u16 = x_hw | (shape_size.size << 14);
         const attr2: u16 = (self.tile_index & 0x03FF) | (@as(u16, self.palette_bank & 0x0F) << 12);
 
         return .{
@@ -143,22 +143,22 @@ test "getShapeAndSize valid dimensions" {
     const std = @import("std");
 
     // Square
-    try std.testing.expectEqual(ShapeSize{ .shape = 0, .size = 0 }, try getShapeAndSize(8, 8));
-    try std.testing.expectEqual(ShapeSize{ .shape = 0, .size = 1 }, try getShapeAndSize(16, 16));
-    try std.testing.expectEqual(ShapeSize{ .shape = 0, .size = 2 }, try getShapeAndSize(32, 32));
-    try std.testing.expectEqual(ShapeSize{ .shape = 0, .size = 3 }, try getShapeAndSize(64, 64));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.SQUARE, .size = hal.oam.Size.SIZE_0 }, try getShapeAndSize(8, 8));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.SQUARE, .size = hal.oam.Size.SIZE_1 }, try getShapeAndSize(16, 16));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.SQUARE, .size = hal.oam.Size.SIZE_2 }, try getShapeAndSize(32, 32));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.SQUARE, .size = hal.oam.Size.SIZE_3 }, try getShapeAndSize(64, 64));
 
     // Horizontal
-    try std.testing.expectEqual(ShapeSize{ .shape = 1, .size = 0 }, try getShapeAndSize(16, 8));
-    try std.testing.expectEqual(ShapeSize{ .shape = 1, .size = 1 }, try getShapeAndSize(32, 8));
-    try std.testing.expectEqual(ShapeSize{ .shape = 1, .size = 2 }, try getShapeAndSize(32, 16));
-    try std.testing.expectEqual(ShapeSize{ .shape = 1, .size = 3 }, try getShapeAndSize(64, 32));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.HORIZONTAL, .size = hal.oam.Size.SIZE_0 }, try getShapeAndSize(16, 8));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.HORIZONTAL, .size = hal.oam.Size.SIZE_1 }, try getShapeAndSize(32, 8));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.HORIZONTAL, .size = hal.oam.Size.SIZE_2 }, try getShapeAndSize(32, 16));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.HORIZONTAL, .size = hal.oam.Size.SIZE_3 }, try getShapeAndSize(64, 32));
 
     // Vertical
-    try std.testing.expectEqual(ShapeSize{ .shape = 2, .size = 0 }, try getShapeAndSize(8, 16));
-    try std.testing.expectEqual(ShapeSize{ .shape = 2, .size = 1 }, try getShapeAndSize(8, 32));
-    try std.testing.expectEqual(ShapeSize{ .shape = 2, .size = 2 }, try getShapeAndSize(16, 32));
-    try std.testing.expectEqual(ShapeSize{ .shape = 2, .size = 3 }, try getShapeAndSize(32, 64));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.VERTICAL, .size = hal.oam.Size.SIZE_0 }, try getShapeAndSize(8, 16));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.VERTICAL, .size = hal.oam.Size.SIZE_1 }, try getShapeAndSize(8, 32));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.VERTICAL, .size = hal.oam.Size.SIZE_2 }, try getShapeAndSize(16, 32));
+    try std.testing.expectEqual(ShapeSize{ .shape = hal.oam.Shape.VERTICAL, .size = hal.oam.Size.SIZE_3 }, try getShapeAndSize(32, 64));
 }
 
 test "getShapeAndSize invalid dimensions" {
