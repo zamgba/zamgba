@@ -93,7 +93,7 @@ test "Fixed24_8 add" {
     const b = Fixed24_8.fromInt(3);
     const c = a.add(b);
     try std.testing.expectEqual(@as(u32, 8), c.toInt());
-    
+
     // Test with fractional parts
     const x = Fixed24_8.fromFloat(2.5);
     const y = Fixed24_8.fromFloat(1.5);

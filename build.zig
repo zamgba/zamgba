@@ -113,4 +113,17 @@ pub fn build(b: *std.Build) void {
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
+
+    const engine_test_module = b.createModule(.{
+        .root_source_file = b.path("src/engine/engine.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    engine_test_module.addImport("zamgba-hal", hal_module);
+
+    const engine_unit_tests = b.addTest(.{
+        .root_module = engine_test_module,
+    });
+    const run_engine_unit_tests = b.addRunArtifact(engine_unit_tests);
+    test_step.dependOn(&run_engine_unit_tests.step);
 }

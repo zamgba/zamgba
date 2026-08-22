@@ -86,3 +86,8 @@ pub const Engine = struct {
 
 pub const gfx2d = @import("gfx2d/gfx2d.zig");
 pub const input = @import("input.zig");
+pub const physics = @import("physics/physics.zig");
+
+test {
+    _ = physics;
+}
