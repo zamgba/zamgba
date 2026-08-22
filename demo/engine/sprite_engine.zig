@@ -30,8 +30,10 @@ pub fn tick(eng: *engine.Engine) void {
 
 export fn main() noreturn {
     // 1. Initialize Display (We still need to configure the hardware registers initially)
-    var display = hal.Display.init();
-    display.setMode0().setObject().setObject1D().writeRegister();
+    hal.display.setMode0();
+    hal.display.setObject();
+    hal.display.setObject1D();
+    hal.display.writeRegister();
 
     // 2. Initialize high-level sprite state (8x8 square sprite)
     spr = engine.Sprite.init(116, 76, 8, 8);

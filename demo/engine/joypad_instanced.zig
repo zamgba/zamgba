@@ -65,8 +65,10 @@ const Game = struct {
 };
 
 export fn main() noreturn {
-    var display = hal.Display.init();
-    display.setMode0().setObject().setObject1D().writeRegister();
+    hal.display.setMode0();
+    hal.display.setObject();
+    hal.display.setObject1D();
+    hal.display.writeRegister();
 
     const spr_width: u32 = 16;
     const spr_height: u32 = 16;
