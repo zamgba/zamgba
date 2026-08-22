@@ -40,6 +40,7 @@ pub const MemorySections = struct {
     pub const EWRAM = @as([*]u16, @ptrFromInt(0x02000000));
     pub const IWRAM = @as([*]u32, @ptrFromInt(0x03000000));
     pub const IORAM = @as([*]volatile u16, @ptrFromInt(0x04000000));
+    pub const REG_DISPCNT = @as(*volatile u16, @ptrFromInt(0x04000000));
     pub const REG_DISPSTAT = @as(*volatile u16, @ptrFromInt(0x04000004));
     pub const REG_VCOUNT = @as(*volatile u16, @ptrFromInt(0x04000006));
     pub const REG_IE = @as(*volatile u16, @ptrFromInt(0x04000200));
