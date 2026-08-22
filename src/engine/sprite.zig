@@ -83,7 +83,10 @@ pub const Sprite = struct {
             return .{ .attr0 = 160, .attr1 = 0, .attr2 = 0, .fill = 0 };
         }
 
-        const shape_size = getShapeAndSize(self.width, self.height) catch ShapeSize{ .shape = hal.oam.Shape.SQUARE, .size = hal.oam.Size.SIZE_0 };
+        const shape_size = getShapeAndSize(self.width, self.height) catch ShapeSize{
+            .shape = hal.oam.Shape.SQUARE,
+            .size = hal.oam.Size.SIZE_0,
+        };
 
         const y_hw: u16 = @as(u16, @intCast(@as(u8, @bitCast(@as(i8, @truncate(self.y))))));
         const x_hw: u16 = @as(u16, @intCast(@as(u9, @bitCast(@as(i9, @truncate(self.x))))));
@@ -138,6 +141,16 @@ pub const Sprite = struct {
         try self.uploadSolidColorToSlices(vram_slice, pal_slice, color);
     }
 };
+
+test "initChecked validates dimensions" {
+    const std = @import("std");
+
+    const spr = try Sprite.initChecked(10, 20, 8, 8);
+    try std.testing.expectEqual(@as(u32, 8), spr.width);
+    try std.testing.expectEqual(@as(u32, 8), spr.height);
+
+    try std.testing.expectError(SpriteError.InvalidDimensions, Sprite.initChecked(10, 20, 12, 12));
+}
 
 test "getShapeAndSize valid dimensions" {
     const std = @import("std");

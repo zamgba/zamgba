@@ -20,7 +20,7 @@ var dx: i32 = 1;
 pub fn tick(eng: *engine.Engine) void {
     // 1. Move the high-level sprite's position
     spr.x += dx;
-    if (spr.x >= 240 - @as(i32, @intCast(spr.width)) or spr.x <= 0) {
+    if (spr.x >= 240 - 8 or spr.x <= 0) {
         dx = -dx;
     }
 
@@ -33,13 +33,13 @@ export fn main() noreturn {
     var display = hal.Display.init();
     display.setMode0().setObject().setObject1D().writeRegister();
 
-    // 2. Initialize high-level sprite state (16x32 rectangle sprite)
-    spr = engine.Sprite.init(112, 64, 16, 32);
+    // 2. Initialize high-level sprite state (8x8 square sprite)
+    spr = engine.Sprite.init(116, 76, 8, 8);
     spr.tile_index = 0;
     spr.palette_bank = 0;
 
-    // 3. Upload solid cyan color tile graphics & palette to hardware
-    spr.uploadSolidColor(engine.Color.CYAN) catch {};
+    // 3. Upload solid white color tile graphics & palette to hardware
+    spr.uploadSolidColor(engine.Color.WHITE) catch {};
 
     // 4. Initialize Engine Context
     var eng = engine.Engine.init();

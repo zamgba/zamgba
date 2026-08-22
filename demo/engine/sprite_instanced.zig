@@ -36,17 +36,7 @@ export fn main() noreturn {
     var display = hal.Display.init();
     display.setMode0().setObject().setObject1D().writeRegister();
 
-    // 2. Setup Palette (PALRAM)
-    const obj_pal = hal.MemorySections.PALRAM + 256;
-    obj_pal[1] = hal.Color.WHITE;
-
-    // 3. Setup Graphics (VRAM)
-    const obj_vram = hal.MemorySections.VRAM + 32768;
-    for (0..16) |i| {
-        obj_vram[i] = 0x1111; // Palette index 1 for all pixels (White)
-    }
-
-    // 4. Instantiate our game state on the stack
+    // 2. Instantiate our game state on the stack
     var game = Game{
         .spr = engine.Sprite.init(116, 76, 8, 8),
         .dx = 1,
@@ -54,10 +44,13 @@ export fn main() noreturn {
     game.spr.tile_index = 0;
     game.spr.palette_bank = 0;
 
-    // 5. Initialize Engine Context
+    // 3. Upload solid white color tile graphics & palette to hardware
+    game.spr.uploadSolidColor(engine.Color.WHITE) catch {};
+
+    // 4. Initialize Engine Context
     var eng = engine.Engine.init();
 
-    // 6. Start the engine loop, passing a POINTER to our instance.
+    // 5. Start the engine loop, passing a POINTER to our instance.
     // The engine's compile-time run loop will cleanly locate and execute the instance's tick() method.
     eng.run(&game);
 }
