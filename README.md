@@ -85,6 +85,7 @@ Zamgba includes several interactive and instructional demo ROMs categorised by a
 ### 2. High-Level Engine Demos
 *   **`sprite_engine`** (`demo/engine/sprite_engine.zig`): Showcases our high-level **Static Namespace / File** engine loop. State is declared cleanly as file-scope `var` variables, and the loop is started via `eng.run(@This())`. The engine automatically manages VBlank timing, OAM hardware uploads, and dynamic slot allocation.
 *   **`sprite_instanced`** (`demo/engine/sprite_instanced.zig`): Showcases our high-level **Pointer-to-Instance** engine loop. Encapsulates the entire game state inside a type-safe structure (`const Game = struct { ... }`) and passes an instance pointer `eng.run(&game)`. This is the recommended structure for larger, multi-sprite/multi-level modular games requiring state serialization (SRAM/Flash cartridge saving).
+*   **`joypad_instanced`** (`demo/engine/joypad_instanced.zig`): Demonstrates high-level sprite movement via D-pad input using engine-layer APIs. Changes sprite color dynamically upon hitting screen boundaries (Top: Red, Bottom: White, Left: Yellow, Right: Green).
 
 ### Can I reference your library as a dependency?
 
