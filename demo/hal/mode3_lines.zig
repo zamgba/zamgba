@@ -31,8 +31,9 @@ export var gameHeader linksection(".gba.header") = hal.setupROMHeader(
 export fn main() noreturn {
     // The example https://www.coranac.com/tonc/text/first.htm
 
-    var display = hal.Display.init();
-    display.setMode3().setBackground2().writeRegister();
+    hal.display.setMode3();
+    hal.display.setBackground2();
+    hal.display.writeRegister();
 
     var ctx = hal.context.Mode3Context.init();
 

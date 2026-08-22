@@ -15,8 +15,10 @@ export fn main() noreturn {
     // 1. Initialize Display
     // We set Mode 0 (Tilemap mode) which is common for 2D games,
     // and enable objects (sprites) to render them.
-    var display = hal.Display.init();
-    display.setMode0().setObject().setObject1D().writeRegister();
+    hal.display.setMode0();
+    hal.display.setObject();
+    hal.display.setObject1D();
+    hal.display.writeRegister();
 
     // 2. Setup Palette (PALRAM)
     // Object palette memory starts at 0x05000200.

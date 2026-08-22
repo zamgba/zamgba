@@ -33,8 +33,10 @@ const Game = struct {
 
 export fn main() noreturn {
     // 1. Initialize Display
-    var display = hal.Display.init();
-    display.setMode0().setObject().setObject1D().writeRegister();
+    hal.display.setMode0();
+    hal.display.setObject();
+    hal.display.setObject1D();
+    hal.display.writeRegister();
 
     // 2. Instantiate our game state on the stack
     var game = Game{

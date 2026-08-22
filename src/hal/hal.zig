@@ -80,9 +80,9 @@ pub const Screen = struct {
     pub const MODE5_HEIGHT_PIXELS = 128;
 };
 
-pub const Display = @import("display.zig");
+pub const display = @import("display.zig");
 pub const joypad = @import("joypad.zig");
-pub const waitForVBlank = Display.waitForVBlank;
+pub const waitForVBlank = display.waitForVBlank;
 
 pub const oam = @import("oam.zig");
 pub const context = @import("context.zig");

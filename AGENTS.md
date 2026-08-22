@@ -53,8 +53,8 @@ Zamgba is a self-learning project for Game Boy Advance (GBA) programming using t
 - **Why**: `@hasDecl` is evaluated at compile time and caused an endless loop during boot under certain target configurations. **Do not refactor the boot sequence to use `@hasDecl`**.
 
 ### 3. Register Access and Unit Testing
-- **Avoid Register Writes in Tests**: GBA hardware register writing functions (such as `Display.writeRegister()` which writes directly to `0x04000000`) must **never** be invoked in unit tests.
-- **Pattern**: When testing components like `Display`, only verify their software-side state (e.g., checking `Display.value`). Avoid writing to or reading from actual volatile pointers when executed on host test machines.
+- **Avoid Register Writes in Tests**: GBA hardware register writing functions (such as `display.writeRegister()` which writes directly to `0x04000000`) must **never** be invoked in unit tests.
+- **Pattern**: When testing components like `display`, only verify their software-side state (e.g., checking `display.value`). Avoid writing to or reading from actual volatile pointers when executed on host test machines.
 
 ### 4. Client Integration Requirements
 To successfully use Zamgba in an external/client project:
