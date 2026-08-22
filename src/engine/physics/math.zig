@@ -133,3 +133,43 @@ test "Fixed24_8 div" {
     const z = x.div(y);
     try std.testing.expectEqual(Fixed24_8.fromFloat(2.5).raw, z.raw);
 }
+
+test "Fixed24_8 quick reference table conformity" {
+    // 3.5 -> (3 << 8) + 128
+    const val_3_5 = Fixed24_8.fromFloat(3.5);
+    try std.testing.expectEqual(@as(u32, (3 << 8) + 128), val_3_5.raw);
+
+    // 0.5 -> 128 (0x80)
+    try std.testing.expectEqual(@as(u32, 128), Fixed24_8.fromFloat(0.5).raw);
+    try std.testing.expectEqual(@as(u32, 128), Fixed24_8.fromFraction(0, 1, 2).raw);
+    try std.testing.expectEqual(@as(u32, 128), Fixed24_8.fromParts(0, 128).raw);
+
+    // 0.25 -> 64 (0x40)
+    try std.testing.expectEqual(@as(u32, 64), Fixed24_8.fromFloat(0.25).raw);
+    try std.testing.expectEqual(@as(u32, 64), Fixed24_8.fromFraction(0, 1, 4).raw);
+
+    // 0.75 -> 192 (0xC0)
+    try std.testing.expectEqual(@as(u32, 192), Fixed24_8.fromFloat(0.75).raw);
+    try std.testing.expectEqual(@as(u32, 192), Fixed24_8.fromFraction(0, 3, 4).raw);
+
+    // 0.125 -> 32 (0x20)
+    try std.testing.expectEqual(@as(u32, 32), Fixed24_8.fromFloat(0.125).raw);
+    try std.testing.expectEqual(@as(u32, 32), Fixed24_8.fromFraction(0, 1, 8).raw);
+
+    // 0.375 -> 96 (0x60)
+    try std.testing.expectEqual(@as(u32, 96), Fixed24_8.fromFloat(0.375).raw);
+    try std.testing.expectEqual(@as(u32, 96), Fixed24_8.fromFraction(0, 3, 8).raw);
+
+    // 0.625 -> 160 (0xA0)
+    try std.testing.expectEqual(@as(u32, 160), Fixed24_8.fromFloat(0.625).raw);
+    try std.testing.expectEqual(@as(u32, 160), Fixed24_8.fromFraction(0, 5, 8).raw);
+
+    // 0.875 -> 224 (0xE0)
+    try std.testing.expectEqual(@as(u32, 224), Fixed24_8.fromFloat(0.875).raw);
+    try std.testing.expectEqual(@as(u32, 224), Fixed24_8.fromFraction(0, 7, 8).raw);
+
+    // Verify integer + fraction combinations
+    // 12.75 -> (12 << 8) + 192
+    try std.testing.expectEqual(@as(u32, (12 << 8) + 192), Fixed24_8.fromFloat(12.75).raw);
+    try std.testing.expectEqual(@as(u32, (12 << 8) + 192), Fixed24_8.fromFraction(12, 3, 4).raw);
+}
