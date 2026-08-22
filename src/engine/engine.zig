@@ -1,6 +1,7 @@
 const hal = @import("zamgba-hal");
 
 pub const Sprite = @import("sprite.zig").Sprite;
+pub const Color = @import("color.zig").Color;
 
 pub const Engine = struct {
     shadow_oam: [128]hal.oam.ObjAttr,
