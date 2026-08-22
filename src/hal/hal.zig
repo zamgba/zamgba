@@ -196,75 +196,75 @@ fn copyDataToEWRAM() void {
 
 comptime {
     if (is_gba_target) {
-        @export(&_boot_impl, .{ .name = "_boot", .linkage = .strong, .section = ".gba.boot" });
-        @export(&irqHandler_impl, .{ .name = "irqHandler", .linkage = .strong });
-        @export(&_start_impl, .{ .name = "_start", .linkage = .strong, .section = ".gba.start" });
+        _ = struct {
+            export fn _boot() linksection(".gba.boot") void {
+                zeroBss();
+                copyDataToEWRAM();
+
+                // Set up default IRQ handler for BIOS IntrWait functions (e.g. SWI 0x05)
+                MemorySections.USER_IRQ_HANDLER.* = irqHandler;
+
+                callUserMain();
+                while (true) {}
+            }
+
+            export fn irqHandler() callconv(.naked) void {
+                asm volatile (
+                    \\.arm
+                    \\.cpu arm7tdmi
+                    \\
+                    \\@ r0 = REG_BASE
+                    \\mov r0, #0x04000000
+                    \\
+                    \\@ r1 = BIOS_IF pointer
+                    \\ldr r1, =0x03007FF8
+                    \\
+                    \\@ Read REG_IF (0x04000202)
+                    \\add r0, r0, #0x200
+                    \\ldrh r2, [r0, #2]
+                    \\
+                    \\@ Acknowledge REG_IF hardware interrupts
+                    \\strh r2, [r0, #2]
+                    \\
+                    \\@ Read BIOS_IF
+                    \\ldrh r3, [r1]
+                    \\
+                    \\@ Acknowledge BIOS IntrWait interrupts
+                    \\orr r3, r3, r2
+                    \\strh r3, [r1]
+                    \\
+                    \\@ Return to BIOS IRQ dispatcher
+                    \\bx lr
+                );
+            }
+
+            export fn _start() linksection(".gba.start") callconv(.naked) void {
+                asm volatile (
+                    \\.arm
+                    \\.cpu arm7tdmi
+                    \\mov r0, #0x04000000
+                    \\str r0, [r0, #0x208]
+                    \\mov r0, #0x12
+                    \\msr cpsr, r0
+                    \\ldr sp, =__sp_irq
+                    \\mov r0, #0x10
+                    \\msr cpsr, r0
+                    \\ldr sp, =__sp_usr
+                    \\ldr r3, =_boot
+                    \\bx r3
+                );
+            }
+        };
     }
 }
 
 fn callUserMain() void {
-    asm volatile (
-        \\.thumb
-        \\.cpu arm7tdmi
-        \\ldr r0, =main
-        \\bx r0
-    );
-}
-
-fn _boot_impl() callconv(.c) void {
-    zeroBss();
-    copyDataToEWRAM();
-
-    // Set up default IRQ handler for BIOS IntrWait functions (e.g. SWI 0x05)
-    MemorySections.USER_IRQ_HANDLER.* = &irqHandler_impl;
-
-    callUserMain();
-    while (true) {}
-}
-
-fn irqHandler_impl() callconv(.naked) void {
-    asm volatile (
-        \\.arm
-        \\.cpu arm7tdmi
-        \\
-        \\@ r0 = REG_BASE
-        \\mov r0, #0x04000000
-        \\
-        \\@ r1 = BIOS_IF pointer
-        \\ldr r1, =0x03007FF8
-        \\
-        \\@ Read REG_IF (0x04000202)
-        \\add r0, r0, #0x200
-        \\ldrh r2, [r0, #2]
-        \\
-        \\@ Acknowledge REG_IF hardware interrupts
-        \\strh r2, [r0, #2]
-        \\
-        \\@ Read BIOS_IF
-        \\ldrh r3, [r1]
-        \\
-        \\@ Acknowledge BIOS IntrWait interrupts
-        \\orr r3, r3, r2
-        \\strh r3, [r1]
-        \\
-        \\@ Return to BIOS IRQ dispatcher
-        \\bx lr
-    );
-}
-
-fn _start_impl() callconv(.naked) void {
-    asm volatile (
-        \\.arm
-        \\.cpu arm7tdmi
-        \\mov r0, #0x04000000
-        \\str r0, [r0, #0x208]
-        \\mov r0, #0x12
-        \\msr cpsr, r0
-        \\ldr sp, =__sp_irq
-        \\mov r0, #0x10
-        \\msr cpsr, r0
-        \\ldr sp, =__sp_usr
-        \\ldr r3, =_boot
-        \\bx r3
-    );
+    if (is_gba_target) {
+        asm volatile (
+            \\.thumb
+            \\.cpu arm7tdmi
+            \\ldr r0, =main
+            \\bx r0
+        );
+    }
 }
