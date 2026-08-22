@@ -212,28 +212,6 @@ comptime {
                 asm volatile (
                     \\.arm
                     \\.cpu arm7tdmi
-                    \\
-                    \\@ r0 = REG_BASE
-                    \\mov r0, #0x04000000
-                    \\
-                    \\@ r1 = BIOS_IF pointer
-                    \\ldr r1, =0x03007FF8
-                    \\
-                    \\@ Read REG_IF (0x04000202)
-                    \\add r0, r0, #0x200
-                    \\ldrh r2, [r0, #2]
-                    \\
-                    \\@ Acknowledge REG_IF hardware interrupts
-                    \\strh r2, [r0, #2]
-                    \\
-                    \\@ Read BIOS_IF
-                    \\ldrh r3, [r1]
-                    \\
-                    \\@ Acknowledge BIOS IntrWait interrupts
-                    \\orr r3, r3, r2
-                    \\strh r3, [r1]
-                    \\
-                    \\@ Return to BIOS IRQ dispatcher
                     \\bx lr
                 );
             }

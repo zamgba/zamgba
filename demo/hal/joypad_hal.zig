@@ -34,6 +34,17 @@ export fn main() noreturn {
         vram[i] = hal.Color.BLACK;
     }
 
+    // Draw initial box at center
+    var iy: i32 = 0;
+    while (iy < box_size) : (iy += 1) {
+        var ix: i32 = 0;
+        while (ix < box_size) : (ix += 1) {
+            const pixel_x = @as(usize, @intCast(box_x + ix));
+            const pixel_y = @as(usize, @intCast(box_y + iy));
+            vram[pixel_y * hal.Screen.WIDTH_PIXELS + pixel_x] = hal.Color.WHITE;
+        }
+    }
+
     // 3. Game Loop
     while (true) {
         // ---------------------------------------------------------
