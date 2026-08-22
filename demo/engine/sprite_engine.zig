@@ -33,25 +33,18 @@ export fn main() noreturn {
     var display = hal.Display.init();
     display.setMode0().setObject().setObject1D().writeRegister();
 
-    // 2. Setup Palette (PALRAM)
-    const obj_pal = hal.MemorySections.PALRAM + 256;
-    obj_pal[1] = hal.Color.WHITE;
-
-    // 3. Setup Graphics (VRAM)
-    const obj_vram = hal.MemorySections.VRAM + 32768;
-    for (0..16) |i| {
-        obj_vram[i] = 0x1111; // Palette index 1 for all pixels (White)
-    }
-
-    // 4. Initialize our level's high-level state
+    // 2. Initialize high-level sprite state (8x8 square sprite)
     spr = engine.Sprite.init(116, 76, 8, 8);
-    spr.tile_index = 0; // Point to the first tile we filled in VRAM
-    spr.palette_bank = 0; // Use the first palette bank
+    spr.tile_index = 0;
+    spr.palette_bank = 0;
 
-    // 5. Initialize Engine Context
+    // 3. Fill solid white color tile graphics & palette to hardware VRAM/PALRAM
+    spr.fillSolidColor(engine.Color.WHITE) catch {};
+
+    // 4. Initialize Engine Context
     var eng = engine.Engine.init();
 
-    // 6. Start the engine loop, passing @This() (our current file-struct type)
+    // 5. Start the engine loop, passing @This() (our current file-struct type)
     // The engine's compile-time run loop will cleanly locate and execute our tick() method.
     eng.run(@This());
 }

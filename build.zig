@@ -87,6 +87,14 @@ pub fn build(b: *std.Build) void {
 
     fifth.root_module.addImport(LibName, m);
 
+    var sixth = arm.addROM(b, .{
+        .optimize = optimize,
+        .name = "joypad_instanced",
+        .root_source_file = b.path("demo/engine/joypad_instanced.zig"),
+    });
+
+    sixth.root_module.addImport(LibName, m);
+
     // Unit tests are compiled and executed in host machine. Some
     // GBA-specific code, e.g., manipulation of registers, will not be
     // covered by unit tests.
