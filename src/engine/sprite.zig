@@ -198,6 +198,28 @@ test "toOamAttr encoding" {
     try std.testing.expectEqual(@as(u16, 0x2004), attr.attr2);
 }
 
+test "colorToBgr555 supports u16, Color, and custom duck-typed structs" {
+    const std = @import("std");
+
+    // 1. u16 (e.g., hal.Color)
+    const raw_color: u16 = hal.Color.RED;
+    try std.testing.expectEqual(hal.Color.RED, colorToBgr555(raw_color));
+
+    // 2. engine.Color struct value
+    const eng_color = Color.RED;
+    try std.testing.expectEqual(hal.Color.RED, colorToBgr555(eng_color));
+
+    // 3. Custom struct with a toBgr555() method (duck typing)
+    const CustomColor = struct {
+        pub fn toBgr555(self: @This()) u16 {
+            _ = self;
+            return 0x1234;
+        }
+    };
+    const custom = CustomColor{};
+    try std.testing.expectEqual(@as(u16, 0x1234), colorToBgr555(custom));
+}
+
 test "fillSolidColorToBuffers mock buffer" {
     const std = @import("std");
 
