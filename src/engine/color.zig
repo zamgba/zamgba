@@ -37,15 +37,17 @@ pub const Color = struct {
         return .{ .r = r8, .g = g8, .b = b8, .a = 255 };
     }
 
-    // Common color constants
-    pub const BLACK = rgb(0, 0, 0);
-    pub const RED = rgb(255, 0, 0);
-    pub const GREEN = rgb(0, 255, 0);
-    pub const BLUE = rgb(0, 0, 255);
-    pub const YELLOW = rgb(255, 255, 0);
-    pub const MAGENTA = rgb(255, 0, 255);
-    pub const CYAN = rgb(0, 255, 255);
-    pub const WHITE = rgb(255, 255, 255);
+    // Common color constants derived directly from hal.Color (BGR555) to stay synchronized
+    pub const BLACK = fromBgr555(hal.Color.BLACK);
+    pub const RED = fromBgr555(hal.Color.RED);
+    pub const GREEN = fromBgr555(hal.Color.LIME);
+    pub const LIME = GREEN;
+    pub const BLUE = fromBgr555(hal.Color.BLUE);
+    pub const YELLOW = fromBgr555(hal.Color.YELLOW);
+    pub const MAGENTA = fromBgr555(hal.Color.MAG);
+    pub const MAG = MAGENTA;
+    pub const CYAN = fromBgr555(hal.Color.CYAN);
+    pub const WHITE = fromBgr555(hal.Color.WHITE);
 };
 
 test "Color toBgr555 matches hal.Color hardware values" {
